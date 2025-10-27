@@ -1,0 +1,48 @@
+<!-- test.html -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>WS Test</title></head>
+<body>
+<h3>WebSocket Test</h3>
+<script>
+    // 1. 创建连接
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6";
+    const ws = new WebSocket("ws://localhost:8080/ws/chat", ["Bearer_" + token]);
+
+    // 2. 连接建立时触发
+    ws.onopen = (event) => {
+        console.log("✅ WebSocket opened", event);
+        // 可以立刻
+        ws.send(JSON.stringify({userId: "462", msg: "Hello from browser"}));
+    };
+
+    // 3. 接收消息
+    ws.onmessage = (event) => {
+        console.log("📩 Message received:", event.data);
+        // 如果服务端发来 JSON 字符串，可 parse：
+        try {
+            const obj = JSON.parse(event.data);
+            console.log("→ parsed:", obj);
+        } catch (e) {
+            console.log("→ plain text:", event.data);
+        }
+    };
+
+    // 4. 错误处理
+    ws.onerror = (err) => {
+        console.error("❌ WebSocket error:", err);
+    };
+
+    // 5. 连接关闭
+    ws.onclose = (ev) => {
+        console.log("🔒 Closed:", ev.code, ev.reason);
+    };
+
+    if (ws.readyState === WebSocket.CLOSED){
+        ws.onopen();
+    }
+    // 6. 主动关闭（示例）
+    // setTimeout(() => ws.close(1000, "bye"), 10000);
+</script>
+</body>
+</html>
