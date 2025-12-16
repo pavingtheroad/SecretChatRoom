@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: initialization
+
+# default ttl of messages
+message-config:
+  default-ttl: 3600
