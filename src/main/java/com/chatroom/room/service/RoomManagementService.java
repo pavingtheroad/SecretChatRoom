@@ -1,5 +1,8 @@
-package com.chatroom.service;
+package com.chatroom.room.service;
 
+import com.chatroom.message.dto.MessageDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -13,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class RoomManagementService {
     private final ConcurrentHashMap<String, Set<WebSocketSession>> roomMap = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void joinRoom(String roomId, WebSocketSession session){
         roomMap.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(session);
@@ -20,19 +24,26 @@ public class RoomManagementService {
     }
 
     public void leaveRoom(String roomId, WebSocketSession session){
-        if (roomMap.computeIfPresent(roomId, (k, sessions) -> {
+        roomMap.compute(roomId, (k, sessions) -> {
+            if (sessions == null) return null;
             sessions.remove(session);
-            return sessions.isEmpty() ? null : sessions;
-        }).isEmpty()) {
-            log.info("{}房间已清空", roomId);
-        }
+            if (sessions.isEmpty()) {
+                log.info("房间 {} 已清空", roomId);
+                return null;
+            }
+            return sessions;
+        });
     }
 
-    public void broadcast(String roomId, String msg) {
+    public void broadcast(String roomId, MessageDTO msg){
         Set<WebSocketSession> sessions = roomMap.get(roomId);
         if (sessions == null) return;
         for (WebSocketSession s : sessions) {
-            sendSafely(s, msg);
+            try{
+                sendSafely(s, objectMapper.writeValueAsString(msg));
+            } catch (JsonProcessingException e){
+                log.error("JsonProcessingIssue while broadcasting,{}",e);
+            }
         }
     }
 

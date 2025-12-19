@@ -1,8 +1,9 @@
 // 核心通信逻辑
 package com.chatroom.websocket;
 
-import com.chatroom.service.RoomManagementService;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.chatroom.message.dto.MessageDTO;
+import com.chatroom.message.service.MessageService;
+import com.chatroom.room.service.RoomManagementService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,26 +13,26 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final RoomManagementService roomManagementService;
+    private final MessageService messageService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String roomId = (String) session.getAttributes().get("roomId");
+        String roomId = (String) session.getAttributes().get("roomId");     // 从session中获取roomId
         roomManagementService.joinRoom(roomId, session);
     }
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage  message){
         String payload = message.getPayload();
-        String roomId = (String) session.getAttributes().get("roomId");
-        roomManagementService.broadcast(roomId, payload);
+        MessageDTO msg = objectMapper.convertValue(payload, MessageDTO.class);
+        msg.setMessageId((String) session.getAttributes().get("userId"));
+        msg.setRoomId((String) session.getAttributes().get("roomId"));
+        messageService.saveAndBroadcast(msg, msg.getRoomId(), msg.getTtl());
     }
 
     @Override
