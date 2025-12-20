@@ -46,9 +46,57 @@
       8. updateRoomInfo `params: roomId, RoomInfoDTO`
       9. authorizeRoomAccess `params: roomId, userId` `return: boolean`
       10. roomExists `params: roomId` `return: boolean`    房间存在校验
-## 2025/12/16-2025/12/17
+
+## 2025/12/16 - 2025/12/19
 ### 完成房间管理模块
 Notes
-1. com.chatroom.room.repository：RoomCacheRepository中的addUserToRoom需要二次开发，缺少**一致性**与**原子性**维护
+1. ~~com.chatroom.room.repository：RoomCacheRepository中的addUserToRoom需要二次开发，缺少**一致性**与**原子性**维护~~
 2. addUserToRoom 的行为语义是**建立关系**的操作，所以逻辑层面应当是**要么都没有，要么都存在**，否则就是存在不一致状态，进入修复功能
 3. 编写接口逻辑功能时需要注意**幂等性**
+
+## 2025/12/19 - 
+### 用户管理设计
+1. 存储模型
+   1. Mysql作为持久层存储用户信息，只包含基本信息（id, 用户名，头像，密码， // 关联邮箱）
+   2. UserInfoDTO 
+
+            userId:
+            userName:
+            avatarUrl:
+   
+   3. UserEntity
+   
+            id:(PK, auto_incr)
+            userId:(uuid)    对外使用
+            userName:
+            avatarUrl:
+            password:(不可逆哈希)
+            email:
+            status(ACTIVE/ DELETED/ BANNED)    尽量不物理删除用户
+
+   4. UserRegisterDTO
+
+            userName:
+            password:
+            email:
+            avatarUrl:(optional)
+
+2. 接口设计
+   1. UserRepository
+      1. saveUser `params: UserEntity`
+      2. getUserById `params: userId` `return: UserEntity`
+      3. getUserByName `params: userName` `return: List<UserEntity>`
+      4. updateUserStatus `params: String userId, UserStatus status`    （修改数据库中用户状态）
+      5. updateUserInfo `params: userId, UserEntity`    更新用户信息
+   2. UserService
+      1. registerUser `params: UserRegisterDTO`    注册用户(留意并发问题)(邮箱注册用户，最终实现版本)
+      2. getUserById `params: userId` `return: UserInfoDTO`
+      3. SearchUserByName `params: userName` `return: List<UserInfoDTO>`
+      4. cancelUser `params: targetUserId, operatorUserId`    注销用户(仅允许用户自行注销和管理员注销)，需要做防御性检测确定是否为用户本人或管理员角色
+         - operatorUserId由认证模块得到表示进行这个操作的用户，具体在实现时的逻辑为先验证是否为本人，如果为本人直接进行操作，
+            否则进入管理员身份鉴权，鉴权为管理员时允许进一步操作，否则警告无权限
+      5. updateUserInfo `params: targetUserId, operatorUserId, UserInfoDTO`    更新用户信息
+      6. bannedUser `params: targetUserId, operatorUserId`    封禁用户(仅允许管理员操作)
+### thoughts
+1. 房间如何添加用户? 通过用户查询添加，还是使用好友功能；除了被邀请加入外，还应当有用户自主搜索房间并加入(通过roomId)    Controller层实现？
+    - 添加用户是房间模块功能；好友需要新增模块 ; 防止Room模块,User模块,Friend模块的耦合
