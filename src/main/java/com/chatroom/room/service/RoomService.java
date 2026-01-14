@@ -4,9 +4,9 @@ import com.chatroom.room.dto.RoomInfoDTO;
 import com.chatroom.room.dto.UserInfoDTO;
 import com.chatroom.room.exception.RoomAlreadyExistsException;
 import com.chatroom.room.exception.RoomNotFoundException;
-import com.chatroom.room.exception.UserAlreadyExistsException;
-import com.chatroom.room.exception.UserNotFoundException;
-import com.chatroom.room.repository.RoomCacheRepository;
+import com.chatroom.user.exception.UserAlreadyExistsException;
+import com.chatroom.user.exception.UserNotFoundException;
+import com.chatroom.room.dao.RoomCacheRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

@@ -2,7 +2,7 @@
 package com.chatroom.message.service;
 
 import com.chatroom.message.dto.MessageDTO;
-import com.chatroom.message.repository.MessageCacheRepository;
+import com.chatroom.message.dao.MessageCacheRepository;
 import com.chatroom.room.service.RoomManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.chatroom.message.repository;
+package com.chatroom.message.dao;
 
 import com.chatroom.message.dto.MessageDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;

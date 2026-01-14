@@ -1,10 +1,10 @@
-package com.chatroom.room.repository;
+package com.chatroom.room.dao;
 
 import com.chatroom.room.dto.RoomInfoDTO;
 import com.chatroom.room.exception.RoomAlreadyExistsException;
 import com.chatroom.room.exception.RoomNotFoundException;
-import com.chatroom.room.exception.UserAlreadyExistsException;
-import com.chatroom.room.exception.UserNotFoundException;
+import com.chatroom.user.exception.UserAlreadyExistsException;
+import com.chatroom.user.exception.UserNotFoundException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
