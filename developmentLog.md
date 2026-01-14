@@ -50,11 +50,11 @@
 ## 2025/12/16 - 2025/12/19
 ### 完成房间管理模块
 Notes
-1. ~~com.chatroom.room.repository：RoomCacheRepository中的addUserToRoom需要二次开发，缺少**一致性**与**原子性**维护~~
+1. ~~com.chatroom.room.dao：RoomCacheRepository中的addUserToRoom需要二次开发，缺少**一致性**与**原子性**维护~~
 2. addUserToRoom 的行为语义是**建立关系**的操作，所以逻辑层面应当是**要么都没有，要么都存在**，否则就是存在不一致状态，进入修复功能
 3. 编写接口逻辑功能时需要注意**幂等性**
 
-## 2025/12/19 - 
+## 2025/12/20
 ### 用户管理设计
 1. 存储模型
    1. Mysql作为持久层存储用户信息，只包含基本信息（id, 用户名，头像，密码， // 关联邮箱）
@@ -100,3 +100,27 @@ Notes
 ### thoughts
 1. 房间如何添加用户? 通过用户查询添加，还是使用好友功能；除了被邀请加入外，还应当有用户自主搜索房间并加入(通过roomId)    Controller层实现？
     - 添加用户是房间模块功能；好友需要新增模块 ; 防止Room模块,User模块,Friend模块的耦合
+
+## 2025/12/21 - 2025/12/22
+### 完成用户模块
+Notes
+- 插入数据时应对并发场景：通过事务+事务隔离，保证数据原子性操作与一致性
+- ** 用户权限表结构更新： ** Role-Based Access Control
+  
+      user: Id (PK)
+            userId
+            userName
+            avatarUrl
+            password
+            email
+            status
+
+      permission: id (PK)
+                permission
+
+      role: id (PK)
+                role
+
+      role_permission: role_id,permission_id (PK)(FK)
+
+      user_role: user_id,role_id (PK)(FK)  

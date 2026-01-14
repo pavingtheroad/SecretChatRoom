@@ -1,21 +1,23 @@
 package com.chatroom.user.entity;
 
 import com.chatroom.user.domain.UserStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
+import com.chatroom.user.dto.UserInfoDTO;
 
-@Entity
-@Table(name = "users")
-@Data
-public class UserEntity {
-    @Id
-    private Long id;
-    private String userId;
-    private String userName;
-    private String avatarUrl;
-    private String password;
-    private String email;
-    private UserStatus status;
+public record UserEntity(
+    Long id,
+    String userId,
+    String userName,
+    String avatarUrl,
+    String password,
+    String email,
+    UserStatus status
+) {
+    public UserInfoDTO toUserInfoDTO(){
+        return new UserInfoDTO(
+            this.userId(),
+            this.userName(),
+            this.avatarUrl(),
+            this.status()
+        );
+    }
 }
