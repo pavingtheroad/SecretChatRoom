@@ -1,6 +1,7 @@
 package com.chatroom.user.dao;
 
 import com.chatroom.user.domain.UserStatus;
+import com.chatroom.user.dto.UserInfoUpdate;
 import com.chatroom.user.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -11,13 +12,17 @@ import java.util.List;
 public interface UserMapper {
     int insertUser(UserEntity user);
 
-    UserEntity selectByUserId(@Param("userId") String userId);
+    Long selectPKIdByUserId(@Param("userId") String userId);    // 内部业务主查询方法
 
-    List<UserEntity> selectByUserName(@Param("userName") String userName);
+    UserEntity selectUserByPKId(@Param("id") Long id);      // 双ID桥梁
 
-    int updateUserStatus(@Param("userId") String userId, @Param("status") UserStatus status);
+    UserEntity selectUserByUserId(@Param("userId") String userId);
 
-    int updateUserInfo(UserEntity user);
+    List<UserEntity> selectUserByName(@Param("userName") String userName);
 
-    List<String> getUserRoles(@Param("userId") String userId);
+    int updateUserStatus(@Param("id") Long id, @Param("status") UserStatus status);
+
+    int updateUserInfo(UserInfoUpdate userInfo, @Param("id") Long id);
+
+    List<String> getUserRoles(@Param("id") Long id);
 }

@@ -1,6 +1,6 @@
 package com.chatroom.user.exception;
 
-public class UserException extends Exception{
+public class UserException extends RuntimeException{
     private final String errorCode;
     public UserException(String errorCode, String message) {
         super(message);

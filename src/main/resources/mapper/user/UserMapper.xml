@@ -7,8 +7,16 @@
         INSERT INTO user_info(user_id, user_name, avatart_url, password, email, status)
         VALUES (#{userId}, #{userName}, #{avatarUrl}, #{password}, #{email}, #{status})
     </insert>
-
-    <select id="selectUserById">
+<!--    将外部使用的userId 转换为内部通用的 PKid-->
+    <select id="selectPKIdByUserId">
+        SELECT id FROM user_info WHERE user_id = #{userId}
+    </select>
+<!-- 程序内部通过PKid进行一系列操作-->
+    <select id="selectUserByPKId">
+        SELECT * FROM user_info WHERE id = #{id}
+    </select>
+<!--    通过userId查找用户 | 对外查询入口-->
+    <select id="selectUserByUserId">
         SELECT * FROM user_info WHERE user_id = #{userId}
     </select>
 
@@ -17,14 +25,14 @@
     </select>
 
     <update id="updateUserStatus">
-        UPDATE user_info SET status = #{status} WHERE user_id = #{userId}
+        UPDATE user_info SET status = #{status} WHERE id = #{id}
     </update>
 
     <update id="updateUserInfo">
-        UPDATE user_info SET user_name = #{userName}, avatart_url = #{avatarUrl}, email = #{email} WHERE user_id = #{userId}
+        UPDATE user_info SET user_name = #{userName}, avatar_url = #{avatarUrl}, email = #{email}, user_id = #{userId} WHERE id = #{id}
     </update>
 
     <select id="getUserRoles">
-        SELECT r.role_code FROM user_role ur JOIN role r ON ur.role_id = r.id WHERE ur.user_id = #{userId}
+        SELECT r.role_code FROM user_role ur JOIN role r ON ur.role_id = r.id WHERE ur.id = #{id}
     </select>
 </mapper>
