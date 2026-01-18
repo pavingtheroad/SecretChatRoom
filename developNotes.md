@@ -58,3 +58,22 @@
   * 追踪新消息：WebSocket
   * 定位历史查看位置：`XRANGE` if 游标消息不存在了 返回无法定位已被删除并更新游标为最新消息
   * 返回最新消息：`XREAD`出最新以前的50条消息
+
+### 构建ApiResponse(更好规范返回值)
+- SpringBoot 中定义一个通用的ApiResponse类实现标准化响应
+
+      public record ApiResponse<T>(
+              String status,
+              String message,
+              T data,
+              Object metaData
+      ) {
+      }
+- 处理成功的反馈
+
+### 全局异常处理——为什么异常基类必须继承RuntimeException
+- 首先要回归到Java异常类体系：`Checked Exception`受检异常和`Unchecked Exception`非受检异常
+  - `Checked Exception` 继承 Exception 但不继承 RuntimeException 都是受检异常，必须进行try-catch处理或者throws声明
+  - `Unchecked Exception` 继承 RuntimeException 都是非受检异常，不需要进行try-catch处理，但可以进行throws声明
+- 为什么全局异常处理器只适用于 RuntimeException
+  - Spring MVC 的 `@ExceptionHandler` 和 `@RestControllerAdvice` 是运行时机制，只有Unchecked Exception才能在不处理时通过编译
