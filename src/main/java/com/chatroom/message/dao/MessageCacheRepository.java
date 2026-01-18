@@ -35,12 +35,12 @@ public class MessageCacheRepository {
 
         String streamKey = "chat:room:" + messageDto.getRoomId() + ":msg";
 
-        String userId = messageDto.getUserId();
-        if (userId == null || userId.isEmpty()){
+        String userPKId = messageDto.getUserPKId();
+        if (userPKId == null || userPKId.isEmpty()){
             throw new RuntimeException("userId is empty for saving message");
         }
         HashMap<String, Object> value = new HashMap<>();
-        value.put("userId", userId);
+        value.put("Id", userPKId);
         value.put("timestamp", String.valueOf(messageDto.getTimestamp()));
         value.put("type", messageDto.getType());
         value.put("content", messageDto.getContent());
@@ -86,18 +86,18 @@ public class MessageCacheRepository {
     }
     /**
      * 游标更新
-     * @param roomId, userId, cursorId
+     * @param roomId, userPKId, cursorId
      */
-    public void updateCursor(String roomId, String userId, String cursorId){
-        String cursorKey = "chat:room:" + roomId + ":userId:" + userId;
+    public void updateCursor(String roomId, String userPKId, String cursorId){
+        String cursorKey = "chat:room:" + roomId + ":userPKId:" + userPKId;
         redisTemplate.opsForHash().put(cursorKey, "cursor", cursorId);
     }
     /**
      * 获取游标（不存在时返回最新）
-     * @param roomId, userId
+     * @param roomId, userPKId
      */
-    public String getCursor(String roomId, String userId){
-        String cursorKey = "chat:room:" + roomId + ":userId:" + userId;
+    public String getCursor(String roomId, String userPKId){
+        String cursorKey = "chat:room:" + roomId + ":userPKId:" + userPKId;
         Object cursorId = redisTemplate.opsForHash().get(cursorKey, "cursor");
         return cursorId != null ? cursorId.toString() : "$";
     }

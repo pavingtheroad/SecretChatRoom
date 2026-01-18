@@ -20,7 +20,7 @@ public class RoomManagementService {
 
     public void joinRoom(String roomId, WebSocketSession session){
         roomMap.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(session);
-        log.info("{}加入房间{}", session.getAttributes().get("userId"), roomId);
+        log.info("{}加入房间{}", session.getAttributes().get("userPKId"), roomId);
     }
 
     public void leaveRoom(String roomId, WebSocketSession session){

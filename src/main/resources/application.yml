@@ -1,7 +1,10 @@
 spring:
   application:
     name: initialization
-
+  datasource:
+    url: jdbc:mysql://localhost:3306/secret_chatroom
+    username: root
+    password: 123456
 # default ttl of messages
 message-config:
   default-ttl: 3600

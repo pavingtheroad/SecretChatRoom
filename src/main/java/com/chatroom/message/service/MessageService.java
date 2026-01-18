@@ -84,7 +84,7 @@ public class MessageService {
                 .map(record -> {
                     Map<Object, Object> v = record.getValue();
                     MessageDTO dto = new MessageDTO();
-                    dto.setUserId((String) v.get("userId"));
+                    dto.setUserPKId((String) v.get("userId"));
                     dto.setTimestamp(Long.parseLong(v.get("timestamp").toString()));
                     dto.setType((String) v.get("type"));
                     dto.setContent((String) v.get("content"));

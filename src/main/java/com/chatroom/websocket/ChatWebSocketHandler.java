@@ -30,9 +30,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage  message){
         String payload = message.getPayload();
         MessageDTO msg = objectMapper.convertValue(payload, MessageDTO.class);
-        msg.setMessageId((String) session.getAttributes().get("userId"));
+        msg.setUserId((String) session.getAttributes().get("userPKId"));
         msg.setRoomId((String) session.getAttributes().get("roomId"));
-        messageService.saveAndBroadcast(msg, msg.getRoomId(), msg.getTtl());
+        messageService.saveAndBroadcast(msg, msg.getRoomId());
     }
 
     @Override

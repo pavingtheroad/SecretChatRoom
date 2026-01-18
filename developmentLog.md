@@ -123,4 +123,24 @@ Notes
 
       role_permission: role_id,permission_id (PK)(FK)
 
-      user_role: user_id,role_id (PK)(FK)  
+      user_role: user_id,role_id (PK)(FK) 
+## 2026/01/16
+## 控制层设计
+- 普通用户
+    1. 注册账户
+        - 参数为[RegisterDTO](src/main/java/com/chatroom/user/dto/UserRegisterDTO.java)
+        - 返回状态码以及提示信息 ResponseEntity
+    2. 用户信息更新
+    3. 用户注销
+    4. ID查询用户(自己)
+- 管理员
+    1. 添加其他管理员
+    2. 封禁用户
+    3. 根据ID查询用户
+- 房间管理
+    1. 创建房间
+    2. 更新房间基本信息
+    3. 删除房间
+    4. 查询房间信息（基本信息&用户列表）
+    5. 邀请用户加入房间
+    6. 移除用户

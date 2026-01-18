@@ -8,9 +8,9 @@ if redis.call('EXISTS', KEYS[1]) == 0 then
 end
 local members = redis.call('SMEMBERS', KEYS[2])
 for i = 1, #members do
-    local userId = members[i]
+    local userPKId = members[i]
     redis.call("SREM", "user:"..userId..":rooms", ARGV[1])
-    redis.call("DEL", "chat:room:"..ARGV[1]..":user:"..userId..":cursor")
+    redis.call("DEL", "chat:room:"..ARGV[1]..":user:"..userPKId..":cursor")
 end
 redis.call("DEL", KEYS[1])
 redis.call("DEL", KEYS[2])

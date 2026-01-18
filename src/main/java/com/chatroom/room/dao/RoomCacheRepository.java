@@ -91,33 +91,34 @@ public class RoomCacheRepository {
         }
         return result;
     }
-    public Boolean addUserToRoom(String roomId, String userId) throws RoomNotFoundException, UserAlreadyExistsException {
+
+    public Boolean addUserToRoom(String roomId, String userPKId) throws RoomNotFoundException, UserAlreadyExistsException {        // 参数userPKId对应数据库中id
         /**
          * 用户存在性校验
          * throw new UserNotFoundException(userId);
          */
         // 还需要补充下列逻辑的一致性问题，通过事务或 Lua 脚本解决
         String roomKey = ROOM_KEY_PREFIX + roomId + ":members";
-        String userKey = "user:" + userId + ":rooms";
+        String userKey = "user:" + userPKId + ":rooms";
 
         List<String> keys = List.of(roomKey, userKey);
 
-        Long result = redisTemplate.execute(addUserToRoomScript, keys, roomId, userId);
+        Long result = redisTemplate.execute(addUserToRoomScript, keys, roomId, userPKId);
         if (result == 0L) throw new RoomNotFoundException(roomId);
-        else if (result == -1L) throw new UserAlreadyExistsException(userId);
+        else if (result == -1L) throw new UserAlreadyExistsException(userPKId);
         else return true;
     }
 
-    public Boolean removeUserFromRoom(String roomId, String userId) throws RoomNotFoundException, UserNotFoundException {
+    public Boolean removeUserFromRoom(String roomId, String userPKId) throws RoomNotFoundException, UserNotFoundException {
         String roomKey = ROOM_KEY_PREFIX + roomId;
         String membersKey = ROOM_KEY_PREFIX + roomId + ":members";
-        String userKey = "user:" + userId + ":rooms";
+        String userKey = "user:" + userPKId + ":rooms";
         List<String> keys = List.of(roomKey, membersKey, userKey);
 
-        Long result = redisTemplate.execute(removeUserFromRoomScript, keys, userId, roomId);
+        Long result = redisTemplate.execute(removeUserFromRoomScript, keys, userPKId, roomId);
 
         if (result == 0L) throw new RoomNotFoundException(roomId);
-        else if (result == -1L) throw new UserNotFoundException(userId);
+        else if (result == -1L) throw new UserNotFoundException(userPKId);
         else return true;
     }
 
@@ -129,11 +130,11 @@ public class RoomCacheRepository {
         return members == null ? Collections.emptySet() : members;
     }
 
-    public Set<String> joinedRooms(String userId){
+    public Set<String> joinedRooms(String userPKId){
         /**
          * 用户存在性校验
          */
-        Set<String> rooms = redisTemplate.opsForSet().members("user:" + userId + ":rooms");    // 进一步优化时可以做分页
+        Set<String> rooms = redisTemplate.opsForSet().members("user:" + userPKId + ":rooms");    // 进一步优化时可以做分页
         return rooms == null ? Collections.emptySet() : rooms;
     }
 
@@ -173,12 +174,12 @@ public class RoomCacheRepository {
 
     }
 
-    public Boolean authorizeRoomAccess(String roomId, String userId) throws RoomNotFoundException {
+    public Boolean authorizeRoomAccess(String roomId, String userPKId) throws RoomNotFoundException {
         String key = ROOM_KEY_PREFIX + roomId;
         if (!roomExists(roomId)){
             throw new RoomNotFoundException(roomId);
         }
-        return redisTemplate.opsForSet().isMember(key + ":members", userId);
+        return redisTemplate.opsForSet().isMember(key + ":members", userPKId);
     }
 
     // 仅用于读路径的快速校验
