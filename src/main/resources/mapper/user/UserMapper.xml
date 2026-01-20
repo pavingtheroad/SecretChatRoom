@@ -35,4 +35,12 @@
     <select id="getUserRoles">
         SELECT r.role_code FROM user_role ur JOIN role r ON ur.role_id = r.id WHERE ur.id = #{id}
     </select>
+
+    <insert id="insertUserRoleTable">
+        INSERT INTO user_role(user_id, role_id) VALUES (#{user_id}, #{role_id})
+    </insert>
+
+    <select id="getRoleIdByCode">
+        SELECT id FROM role WHERE role_code = #{role_code}
+    </select>
 </mapper>

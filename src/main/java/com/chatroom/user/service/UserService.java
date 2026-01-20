@@ -101,7 +101,6 @@ public class UserService {
             throw new UserException("USER_INFO_UPDATED_FAILED", e.getMessage());
         }
     }
-
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public void bannedUser(String targetUserId, String operatorUserId) throws AuthorityException, UserNotFoundException {
         /**

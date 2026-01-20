@@ -25,4 +25,8 @@ public interface UserMapper {
     int updateUserInfo(UserInfoUpdate userInfo, @Param("id") Long id);
 
     List<String> getUserRoles(@Param("id") Long id);
+
+    Long getRoleIdByCode(@Param("role_code") String code);
+
+    int insertUserRoleTable(@Param("user_id") Long userPKId, @Param("role_id") Long roleId);
 }
