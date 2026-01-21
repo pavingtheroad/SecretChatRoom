@@ -1,7 +1,8 @@
 package com.chatroom.facade;
 
 import com.chatroom.room.exception.RoomNotFoundException;
-import com.chatroom.room.service.RoomService;
+import com.chatroom.room.service.RoomOwnerService;
+import com.chatroom.room.service.RoomServiceImpl;
 import com.chatroom.user.exception.AuthorityException;
 import com.chatroom.user.exception.UserNotFoundException;
 import com.chatroom.user.service.UserService;
@@ -16,17 +17,20 @@ import java.util.Set;
 public class UserLifecycleService {
     private static final Logger log = LoggerFactory.getLogger(UserLifecycleService.class);
     private final UserService US;
-    private final RoomService RS;
-    public UserLifecycleService(UserService userService, RoomService roomService){
+    private final RoomServiceImpl RS;
+    private final RoomOwnerService ROS;
+    public UserLifecycleService(UserService userService, RoomServiceImpl roomServiceImpl, RoomOwnerService roomOwnerService){
         this.US = userService;
-        this.RS = roomService;
+        this.RS = roomServiceImpl;
+        this.ROS = roomOwnerService;
     }
     public void cancelUser(String targetUserId, String operatorUserId) throws UserNotFoundException, AuthorityException{
         Long targetUserPKId = US.cancelUser(targetUserId, operatorUserId);
+
         Set<String> roomIds = RS.joinedRoomsId(targetUserPKId.toString());
         for (String roomId : roomIds) {
             try {
-                RS.removeUserFromRoom(roomId, targetUserPKId.toString());
+                ROS.removeUserFromRoom(roomId, targetUserPKId.toString());
             } catch (RoomNotFoundException | UserNotFoundException e) {
                 log.warn("Room cleanup skipped: roomId={}, userId={}", roomId, targetUserPKId);
             } catch (Exception e) {

@@ -11,6 +11,10 @@
     <select id="selectPKIdByUserId">
         SELECT id FROM user_info WHERE user_id = #{userId}
     </select>
+<!--    将内部PKid转换为外部userId-->
+    <select id="selectUserIdByPKId">
+        SELECT user_id FROM user_info WHERE id = #{id}
+    </select>
 <!-- 程序内部通过PKid进行一系列操作-->
     <select id="selectUserByPKId">
         SELECT * FROM user_info WHERE id = #{id}
@@ -42,5 +46,12 @@
 
     <select id="getRoleIdByCode">
         SELECT id FROM role WHERE role_code = #{role_code}
+    </select>
+    <select id="getRoleCodeById">
+        SELECT role_code FROM role WHERE id = #{id}
+    </select>
+
+    <select id="getRoleIdsByUserId">
+        SELECT role_id FROM user_role WHERE user_id = #{user_id}
     </select>
 </mapper>

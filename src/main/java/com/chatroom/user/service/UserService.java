@@ -117,6 +117,10 @@ public class UserService {
             throw new UserNotFoundException(targetUserId);
         }
     }
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public void updateUserStatus(Long targetUserPKId, UserStatus status) throws DuplicateKeyException, UserNotFoundException{
+        userMapper.updateUserStatus(targetUserPKId, status);
+    }
 
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     protected Long transformUserIdToPKId(String userId) throws UserNotFoundException {

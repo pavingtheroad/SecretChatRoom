@@ -14,6 +14,8 @@ public interface UserMapper {
 
     Long selectPKIdByUserId(@Param("userId") String userId);    // 内部业务主查询方法
 
+    String selectUserIdByPKId(@Param("id") Long id);
+
     UserEntity selectUserByPKId(@Param("id") Long id);      // 双ID桥梁
 
     UserEntity selectUserByUserId(@Param("userId") String userId);
@@ -28,5 +30,10 @@ public interface UserMapper {
 
     Long getRoleIdByCode(@Param("role_code") String code);
 
-    int insertUserRoleTable(@Param("user_id") Long userPKId, @Param("role_id") Long roleId);
+    String getRoleCodeById(@Param("id") Long roleId);
+
+    List<Long> getRoleIdsByUserId(@Param("user_id") Long userPKId);
+
+    void insertUserRoleTable(@Param("user_id") Long userPKId, @Param("role_id") Long roleId);
+
 }

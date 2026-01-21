@@ -16,4 +16,5 @@ public class RoleService {
     public Long getRoleIdByCode(String code){
         return userMapper.getRoleIdByCode(code);
     }
+
 }
