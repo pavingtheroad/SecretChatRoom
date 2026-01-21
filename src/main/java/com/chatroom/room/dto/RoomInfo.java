@@ -1,6 +1,6 @@
 package com.chatroom.room.dto;
 
-public record RoomInfoDTO(
+public record RoomInfo(
         String roomId,
         String roomName,
         String ownerId,
