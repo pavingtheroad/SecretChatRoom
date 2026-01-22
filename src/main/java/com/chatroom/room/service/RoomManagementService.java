@@ -3,7 +3,8 @@ package com.chatroom.room.service;
 import com.chatroom.message.dto.MessageDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -12,11 +13,11 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Service
 public class RoomManagementService {
     private final ConcurrentHashMap<String, Set<WebSocketSession>> roomMap = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static Logger log = LoggerFactory.getLogger(RoomManagementService.class);
 
     public void joinRoom(String roomId, WebSocketSession session){
         roomMap.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(session);
