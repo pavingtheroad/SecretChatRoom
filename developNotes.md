@@ -77,3 +77,11 @@
   - `Unchecked Exception` 继承 RuntimeException 都是非受检异常，不需要进行try-catch处理，但可以进行throws声明
 - 为什么全局异常处理器只适用于 RuntimeException
   - Spring MVC 的 `@ExceptionHandler` 和 `@RestControllerAdvice` 是运行时机制，只有Unchecked Exception才能在不处理时通过编译
+
+### Questions Wait For Answer
+- Servlet 在 Spring 中的应用
+- Mybatis 中 Mapper 与 xml 的映射
+  - Mapper 方法名一定要对应 Mybatis 的 id 吗？为什么
+- 注入的目的是什么？
+- @Service为什么要标在实现类上
+- 小型项目架构设计理念（各个层的职责“怎么高内聚低耦合”）
