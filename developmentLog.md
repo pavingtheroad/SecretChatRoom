@@ -162,9 +162,12 @@ Notes
 - 写功能
     1. 权限校验
     2. 触发写后事件
+    3. 剪枝操作
 - 读功能
     1. 读取操作（初始化读取，向前、后翻页）
     2. 游标维护
+        -  游标和房间一起通过chat:room:{roomId}删除
+        - 房间剪枝后将游标更新到目前最旧id
     3. 权限校验
 - 存储模型
 
@@ -178,3 +181,8 @@ Notes
         游标
         chat:room:{roomId}:userPKId:{userId} 
                              cursor
+- 剪枝策略
+    1. 确定业务时间
+    2. 找到第一条时间戳：进行有limit的顺序读取记录StreamID到cutOffTime
+    3. 执行剪枝
+    4. cursor兜底机制（退化策略）：剪枝后在 MessageQueryService 里检测：cursor 不存在 → reset 到 earliest / latest
