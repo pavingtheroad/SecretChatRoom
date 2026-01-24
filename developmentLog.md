@@ -125,7 +125,7 @@ Notes
 
       user_role: user_id,role_id (PK)(FK) 
 ## 2026/01/16
-## 控制层设计
+### 控制层设计
 - 普通用户
     1. 注册账户
         - 参数为[RegisterDTO](src/main/java/com/chatroom/user/dto/UserRegisterDTO.java)
@@ -146,7 +146,7 @@ Notes
     5. 邀请用户加入房间
     6. 移除用户
 ## 2026/01/20
-## 用户模块各功能进一步内聚
+### 用户模块各功能进一步内聚
 - 用户功能
     - 用户注册/注销
     - 用户信息操作
@@ -155,4 +155,26 @@ Notes
     - 为用户添加角色身份
     - 为用户删除角色身份
 ## 2026/01/21
-## 房间模块进一步优化
+### 房间模块进一步优化
+
+## 2026/01/23
+### 消息模块设计
+- 写功能
+    1. 权限校验
+    2. 触发写后事件
+- 读功能
+    1. 读取操作（初始化读取，向前、后翻页）
+    2. 游标维护
+    3. 权限校验
+- 存储模型
+
+        消息
+        chat:room:{roomId}:msg 
+                             messageId(Redis Stream生成)
+                             userId (数据库user表的PKID)
+                             type (text/image/file..)
+                             content (具体信息)
+                             timestamp (时间戳，方便trim剪枝)
+        游标
+        chat:room:{roomId}:userPKId:{userId} 
+                             cursor

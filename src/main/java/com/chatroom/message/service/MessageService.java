@@ -3,24 +3,22 @@ package com.chatroom.message.service;
 
 import com.chatroom.message.dto.MessageDTO;
 import com.chatroom.message.dao.MessageCacheRepository;
-import com.chatroom.room.service.RoomManagementService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class MessageService {
-    private final RoomManagementService roomManagementService;
     private final MessageCacheRepository messageCacheRepository;
+    public MessageService(MessageCacheRepository messageCacheRepository){
+        this.messageCacheRepository = messageCacheRepository;
+    }
 
     /**
      * 进入房间后的消息查询初始化（从最新消息向上查询）
@@ -29,6 +27,9 @@ public class MessageService {
      */
     public List<MessageDTO> initMessageQuery(String roomId, int limit){
         String lastMessageId = messageCacheRepository.getLastMessageId(roomId);
+        if (lastMessageId == null){
+            return Collections.emptyList();
+        }
         Range<String> range = Range.leftUnbounded(Range.Bound.inclusive(lastMessageId));
         Limit lim = Limit.limit().count(limit);
         List<MapRecord<String, Object, Object>> records = messageCacheRepository.rangeMessages(roomId, range, lim, true);
