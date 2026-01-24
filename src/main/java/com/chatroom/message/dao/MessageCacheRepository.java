@@ -14,9 +14,17 @@ import org.springframework.stereotype.Repository;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * 消息缓存仓库
+ * - saveMessage: 将消息保存到指定聊天室的Redis流中，返回生成的消息ID
+ * - reverseRangeMessages: 从指定聊天室按倒序分页查询消息列表
+ * - rangeMessages: 从指定聊天室按正序分页查询消息列表
+ * - trimMessage: 对指定聊天室的消息进行剪枝，删除早于截止ID的消息
+ * - getLastMessageId: 获取指定聊天室的最新消息ID
+ */
 @Repository
-// 管理缓存持久化
 public class MessageCacheRepository {
     private static final Logger log = LoggerFactory.getLogger(MessageCacheRepository.class);
     private final StringRedisTemplate redisTemplate;
@@ -44,7 +52,7 @@ public class MessageCacheRepository {
      * 倒序分页查询
      * @param roomId, range, limit
      */
-    public List<MapRecord<String, Object, Object>> reverseRangeMessages(Long roomId, Range range, Limit limit){
+    public List<MapRecord<String, Object, Object>> reverseRangeMessages(String roomId, Range range, Limit limit){
         String streamKey = "chat:room:" + roomId + ":msg";
         return redisTemplate.opsForStream().reverseRange(streamKey, range, limit);
 
@@ -53,7 +61,7 @@ public class MessageCacheRepository {
      * 顺序分页查询
      * @param roomId, range, limit
      */
-    public List<MapRecord<String, Object, Object>> rangeMessages(Long roomId, Range range, Limit limit){
+    public List<MapRecord<String, Object, Object>> rangeMessages(String roomId, Range range, Limit limit){
         String streamKey = "chat:room:" + roomId + ":msg";
         return redisTemplate.opsForStream().range(streamKey, range, limit);
     }
@@ -77,10 +85,13 @@ public class MessageCacheRepository {
      * 获取最新消息ID
      * @param roomId
      */
-    public String getLastMessageId(Long roomId){
+    public Optional<String> getLastMessageId(String roomId){
         String streamKey = "chat:room:" + roomId + ":msg";
         List<MapRecord<String, Object, Object>> rec =
                 redisTemplate.opsForStream().reverseRange(streamKey, Range.unbounded(), Limit.limit().count(1));
-        return rec.isEmpty() ? null : rec.get(0).getId().getValue();
+        if (rec == null || rec.isEmpty()){
+            return Optional.empty();
+        }
+        return Optional.of(rec.get(0).getId().getValue());
     }
 }
