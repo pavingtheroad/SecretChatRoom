@@ -95,12 +95,19 @@ public class MessageQueryService {
         return records.stream()
                 .map(record -> {
                     Map<Object, Object> v = record.getValue();
-                    MessageDTO dto = new MessageDTO();
-                    dto.setUserPKId((String) v.get("userId"));
-                    dto.setTimestamp(Long.parseLong(v.get("timestamp").toString()));
-                    dto.setType((String) v.get("type"));
-                    dto.setContent((String) v.get("content"));
-                    return dto;
+                    return new MessageDTO(
+                            v.get("roomId").toString(),
+                            v.get("userId").toString(),     // senderId
+                            v.get("type").toString(),
+                            v.get("content").toString()
+
+                    );
+//                    MessageDTO dto = new MessageDTO();
+//                    dto.setUserPKId((String) v.get("userId"));
+//                    dto.setTimestamp(Long.parseLong(v.get("timestamp").toString()));
+//                    dto.setType((String) v.get("type"));
+//                    dto.setContent((String) v.get("content"));
+//                    return dto;
                 })
                 .toList();
     }

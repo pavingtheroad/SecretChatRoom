@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * 消息缓存仓库
- * - saveMessage: 将消息保存到指定聊天室的Redis流中，返回生成的消息ID
+ * - sendMessage: 将消息保存到指定聊天室的Redis流中，返回生成的消息ID
  * - reverseRangeMessages: 从指定聊天室按倒序分页查询消息列表
  * - rangeMessages: 从指定聊天室按正序分页查询消息列表
  * - trimMessage: 对指定聊天室的消息进行剪枝，删除早于截止ID的消息
