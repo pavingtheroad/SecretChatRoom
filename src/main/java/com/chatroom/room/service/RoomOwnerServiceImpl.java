@@ -1,5 +1,6 @@
 package com.chatroom.room.service;
 
+import com.chatroom.security.component.IdentityResolver;
 import com.chatroom.component.RoomAuthorization;
 import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.room.dao.RoomCacheRepository;
@@ -17,23 +18,23 @@ public class RoomOwnerServiceImpl implements RoomOwnerService{
         this.roomAuthorization = roomAuthorization;
     }
     @Override
-    public void addUserToRoom(String roomId, String userId, String operatorId) {
-        String operatorPKId = userIdentityResolver.getUserPKIdByUserId(operatorId).toString();
+    public void addUserToRoom(String roomId, String userId) {
+        String operatorPKId = IdentityResolver.currentUserPKId().toString();
         roomAuthorization.checkRoomOwner(roomId, operatorPKId);
         String userPKId = userIdentityResolver.getUserPKIdByUserId(userId).toString();
         roomCacheRepository.addUserToRoom(roomId, userPKId);
     }
 
     @Override
-    public void manageRoomInfo(String roomId, RoomInfoUpdate roomInfo, String userId) {
-        String userPKId = userIdentityResolver.getUserPKIdByUserId(userId).toString();
+    public void manageRoomInfo(String roomId, RoomInfoUpdate roomInfo) {
+        String userPKId = IdentityResolver.currentUserPKId().toString();
         roomAuthorization.checkRoomOwner(roomId, userPKId);
         roomCacheRepository.updateRoomInfo(roomId, roomInfo);
     }
 
     @Override
-    public void deleteRoom(String roomId, String userId) {
-        String userPKId = userIdentityResolver.getUserPKIdByUserId(userId).toString();
+    public void deleteRoom(String roomId) {
+        String userPKId = IdentityResolver.currentUserPKId().toString();
         roomAuthorization.checkRoomOwner(roomId, userPKId);
         roomCacheRepository.deleteRoom(roomId);
     }

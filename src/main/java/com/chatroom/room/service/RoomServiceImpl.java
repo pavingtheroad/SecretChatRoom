@@ -56,29 +56,6 @@ public class RoomServiceImpl implements RoomService{
         roomAuthorization.authorizeLeaveRoom(roomId, userPKId, operatorPKId);
         roomCacheRepository.removeUserFromRoom(roomId, userIdentityResolver.getUserPKIdByUserId(userId).toString());
     }
-//    public List<RoomInfo> joinedRooms(String userPKId) throws RoomNotFoundException {
-//        List<RoomInfo> roomInfoList = new ArrayList<>();
-//        Set<String> rooms = roomCacheRepository.joinedRooms(userPKId);
-//        List<Map<String, String>> roomInfoMap = roomCacheRepository.batchGetRoomInfo(rooms);
-//        roomInfoMap
-//                .forEach(
-//                        roomInfo -> {
-//                            roomInfoList.add(
-//                                    new RoomInfo(
-//                                            roomInfo.get("roomId"),
-//                                            roomInfo.get("roomName"),
-//                                            roomInfo.get("owner"),
-//                                            roomInfo.get("description") == null ? "" : roomInfo.get("description"),
-//                                            Long.parseLong(roomInfo.get("createdAt")),
-//                                            Boolean.parseBoolean(roomInfo.get("muted")),
-//                                            Boolean.parseBoolean(roomInfo.get("locked")),
-//                                            Long.parseLong(roomInfo.get("ttlMillis"))
-//                                    )
-//                            );
-//                        }
-//                );
-//        return roomInfoList;
-//    }
 
     public Boolean authorizeRoomAccess(String roomId, String userPKId) throws RoomNotFoundException {
         return roomCacheRepository.authorizeRoomAccess(roomId, userPKId);

@@ -93,7 +93,7 @@ public class RoomController {
     public ResponseEntity<ApiResponse<Void>> addUserToRoom(@PathVariable String roomId, @RequestBody AddUserRequest request){
         String operatorId = "";     // 留位
         String userId = request.userId();
-        roomOwnerService.addUserToRoom(roomId, userId, operatorId);
+        roomOwnerService.addUserToRoom(roomId, userId);
 
         return ResponseEntity.ok(new ApiResponse<>(
                 "SUCCESS",
@@ -105,7 +105,7 @@ public class RoomController {
     @PutMapping("/{roomId}")
     public ResponseEntity<ApiResponse<Void>> manageRoomInfo(@PathVariable String roomId, @RequestBody RoomInfoUpdate roomInfo){
         String operatorId = "";     // 留位
-        roomOwnerService.manageRoomInfo(roomId, roomInfo, operatorId);
+        roomOwnerService.manageRoomInfo(roomId, roomInfo);
         return ResponseEntity.ok(new ApiResponse<>(
                 "SUCCESS",
                 "Manage Room Info Successfully",
@@ -116,7 +116,7 @@ public class RoomController {
     @DeleteMapping("/{roomId}")
     public ResponseEntity<ApiResponse<Void>> deleteRoom(@PathVariable String roomId){
         String operatorId = "";
-        roomOwnerService.deleteRoom(roomId, operatorId);
+        roomOwnerService.deleteRoom(roomId);
         return ResponseEntity.ok(new ApiResponse<>(
                 "SUCCESS",
                 "Delete Room Successfully",
