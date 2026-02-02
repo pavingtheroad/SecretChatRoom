@@ -46,10 +46,10 @@
 `预防极限并发请求——pipeline传送命令`
 * 发送消息：
   * 使用 `XADD room:123:msg * 
-            userId 42
+            userPKId 42
             timestamp 1630000000
             type "text" 
-            userId 100001
+            userPKId 100001
             content '{***}' `
   总的来说就是**可变KV**采用JSON格式存储，**不可变KV**采用扁平化存储
   * 在发送消息时记录Redis返回的id，用来更新游标
@@ -84,4 +84,12 @@
   - Mapper 方法名一定要对应 Mybatis 的 id 吗？为什么
 - 注入的目的是什么？
 - @Service为什么要标在实现类上
-- 小型项目架构设计理念（各个层的职责“怎么高内聚低耦合”）
+- 小型项目架构设计理念（各个层的职责“怎么高内聚低耦合”）\ 抽象依赖与业务耦合的区别？
+- SecurityChain的http过滤链中的一些常用配置
+  - CSRF（跨站请求伪造防护）：默认开启，为每个客户端分配随机token(类比通行证)
+    - 客户端如何携带 token：
+      1.放在cookie中：在前端发送请求时从 Cookie 中取出 token 放到请求头/请求体中交给服务器认证。
+      *万一 Cookie 中的 token 被挟持怎么办？* 现代 CSRF 防护中还会检查请求头的Origin字段确认域名
+- Spring Security 的完整流程
+  1. 用户登录信息 -> 服务器验证凭证合法性 -> （验证成功）生成JWT返回客户端 -> 客户端保存JWT并在后续需要权限验证的请求中携带token
+  2. 

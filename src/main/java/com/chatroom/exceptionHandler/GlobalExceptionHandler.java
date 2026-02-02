@@ -1,5 +1,6 @@
-package com.chatroom.handler;
+package com.chatroom.exceptionHandler;
 
+import com.chatroom.security.exception.JwtGenerateException;
 import com.chatroom.user.exception.AuthorityException;
 import com.chatroom.user.exception.EmailOccupiedException;
 import com.chatroom.user.exception.UserException;
@@ -29,5 +30,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleAuthority(AuthorityException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
     }
-
+    @ExceptionHandler(JwtGenerateException.class)
+    public ResponseEntity<String> handleJwtGenerate(JwtGenerateException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    }
 }

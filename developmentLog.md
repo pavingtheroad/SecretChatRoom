@@ -16,35 +16,35 @@
       `room:{roomId}:members `
    3. 用户加入的房间列表 `SET`
    
-      `user:{userId}:rooms `
+      `user:{userPKId}:rooms `
 2. 接口设计（写数据时注意原子性）
    1. RoomRepository
       1. createRoom `params: RoomInfoDTO`    创建房间
       2. getRoomInfo `params: roomId` `return: RoomInfoDTO`    获取房间信息
-      3. addUserToRoom `params: roomId, userId`    用户加入房间
-      4. removeUserFromRoom `params: roomId, userId`   用户退出房间
+      3. addUserToRoom `params: roomId, userPKId`    用户加入房间
+      4. removeUserFromRoom `params: roomId, userPKId`   用户退出房间
       5. getRoomMembers `params: roomId` `return: Set<String>`    房间成员表(获取id)
-      6. joinedRooms `params: userId` `return: Set<String>`    房间信息(获取id)
+      6. joinedRooms `params: userPKId` `return: Set<String>`    房间信息(获取id)
       7. deleteRoomAtomic `params: roomId`    删除房间（同时删除
                                           `room:{roomId} (hash) `
                                           `room:{roomId}:members`
                                           `chat:room:{roomId}:msg (redis stream)` 
-                                          `chat:room:{roomId}:user:{userId}:cursor`
-                                          `user:{userId}:rooms`
+                                          `chat:room:{roomId}:user:{userPKId}:cursor`
+                                          `user:{userPKId}:rooms`
          因为要操作多个数据，所以要保证原子性：Lua / pipeline
       8. updateRoomInfo `params: roomId, RoomInfoDTO`    更新房间信息
-      9. authorizeRoomAccess `params: roomId, userId` `return: boolean`    房间级别用户鉴权（是否能够进入房间）
+      9. authorizeRoomAccess `params: roomId, userPKId` `return: boolean`    房间级别用户鉴权（是否能够进入房间）
       10. roomExists `params: roomId` `return: boolean`    房间存在校验(读校验)
    2. RoomService
       1. createRoom `params: RoomInfoDTO`
       2. getRoomInfo `params: roomId` `return: RoomInfoDTO`    获取房间信息
-      3. addUserToRoom `params: roomId, userId`    用户加入房间
-      4. removeUserFromRoom `params: roomId, userId`    用户退出房间
+      3. addUserToRoom `params: roomId, userPKId`    用户加入房间
+      4. removeUserFromRoom `params: roomId, userPKId`    用户退出房间
       5. getRoomMembers `params: roomId` `return: List<UserInfoDTO>`    房间成员表(聚合具体信息)
-      6. joinedRooms `params: userId` `return: RoomInfoDTO[]`    用户加入的房间列表
+      6. joinedRooms `params: userPKId` `return: RoomInfoDTO[]`    用户加入的房间列表
       7. deleteRoom `params: roomId`    删除房间
       8. updateRoomInfo `params: roomId, RoomInfoDTO`
-      9. authorizeRoomAccess `params: roomId, userId` `return: boolean`
+      9. authorizeRoomAccess `params: roomId, userPKId` `return: boolean`
       10. roomExists `params: roomId` `return: boolean`    房间存在校验
 
 ## 2025/12/16 - 2025/12/19
@@ -60,14 +60,14 @@ Notes
    1. Mysql作为持久层存储用户信息，只包含基本信息（id, 用户名，头像，密码， // 关联邮箱）
    2. UserInfoDTO 
 
-            userId:
+            userPKId:
             userName:
             avatarUrl:
    
    3. UserEntity
    
             id:(PK, auto_incr)
-            userId:(uuid)    对外使用
+            userPKId:(uuid)    对外使用
             userName:
             avatarUrl:
             password:(不可逆哈希)
@@ -84,13 +84,13 @@ Notes
 2. 接口设计
    1. UserRepository
       1. saveUser `params: UserEntity`
-      2. getUserById `params: userId` `return: UserEntity`
+      2. getUserById `params: userPKId` `return: UserEntity`
       3. getUserByName `params: userName` `return: List<UserEntity>`
-      4. updateUserStatus `params: String userId, UserStatus status`    （修改数据库中用户状态）
-      5. updateUserInfo `params: userId, UserEntity`    更新用户信息
+      4. updateUserStatus `params: String userPKId, UserStatus status`    （修改数据库中用户状态）
+      5. updateUserInfo `params: userPKId, UserEntity`    更新用户信息
    2. UserService
       1. registerUser `params: UserRegisterDTO`    注册用户(留意并发问题)(邮箱注册用户，最终实现版本)
-      2. getUserById `params: userId` `return: UserInfoDTO`
+      2. getUserById `params: userPKId` `return: UserInfoDTO`
       3. SearchUserByName `params: userName` `return: List<UserInfoDTO>`
       4. cancelUser `params: targetUserId, operatorUserId`    注销用户(仅允许用户自行注销和管理员注销)，需要做防御性检测确定是否为用户本人或管理员角色
          - operatorUserId由认证模块得到表示进行这个操作的用户，具体在实现时的逻辑为先验证是否为本人，如果为本人直接进行操作，
@@ -108,7 +108,7 @@ Notes
 - ** 用户权限表结构更新： ** Role-Based Access Control
   
       user: Id (PK)
-            userId
+            userPKId
             userName
             avatarUrl
             password
@@ -162,7 +162,6 @@ Notes
 - 写功能
     1. 权限校验
     2. 触发写后事件
-    3. 剪枝操作
 - 读功能
     1. 读取操作（初始化读取，向前、后翻页）
     2. 游标维护
@@ -174,15 +173,53 @@ Notes
         消息
         chat:room:{roomId}:msg 
                              messageId(Redis Stream生成)
-                             userId (数据库user表的PKID)
+                             userPKId (数据库user表的PKID)
                              type (text/image/file..)
                              content (具体信息)
                              timestamp (时间戳，方便trim剪枝)
         游标
-        chat:room:{roomId}:userPKId:{userId} 
+        chat:room:{roomId}:userPKId:{userPKId} 
                              cursor
 - 剪枝策略
     1. 确定业务时间
     2. 找到第一条时间戳：进行有limit的顺序读取记录StreamID到cutOffTime
     3. 执行剪枝
     4. cursor兜底机制（退化策略）：剪枝后在 MessageQueryService 里检测：cursor 不存在 → reset 到 earliest / latest
+- 房间状态持久层接口：避免反复XREVERSE读取最新消息浪费资源
+
+        chat:room:{roomId}:state
+                            lastMessageId
+    - updateLastMessageId `params: String roomId, String messageId`
+    - getLastMessageId `params: String roomId` `return String`
+    - createRoomState `params: String roomId` `return void`
+    - deleteRoomState `params: String roomId` `return void`
+- 写功能接口
+  - saveMessage `params: MessageDTO messageDTO` `return void`
+
+## 2026/01/27
+### Security 模块设计
+- 构建顺序流程 
+    1. UserDetails + UserDetailsService
+       - 将UserDetailsService中的userName看作userId进行构建
+    2. PasswordEncoder(SecurityConfig)
+    3. AuthenticationManager + Login API(LoginService)
+    4. JWT generator
+    5. JWT Filter
+    6. SecurityConfig
+    7. IdentityResolver
+## 2026/02/02
+### Auth 模块设计（登录验证）
+- 结构
+  - auth
+    - controller
+      - AuthController
+    - service
+      - AuthService
+    - dto
+      - LoginRequest
+      - LoginResponse
+- AuthService
+  - login `params: String userId, String password`
+    - 验证客户端的登录凭证 -> 正确则返回JWT
+    - 接收客户端的可变userId 和 password, 在凭证验证结束后将不可变的userPKId, Roles保存在JWT中返回给客户端，
+    在后续的一系列请求中从token获取的就是不可变的userPKId
