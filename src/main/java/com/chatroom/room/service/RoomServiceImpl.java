@@ -1,21 +1,16 @@
 package com.chatroom.room.service;
 
-import com.chatroom.component.RoomAuthorization;
+import com.chatroom.room.component.RoomAuthorization;
 import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.room.dto.RoomInfo;
 import com.chatroom.room.exception.RoomAlreadyExistsException;
 import com.chatroom.room.exception.RoomNotFoundException;
-import com.chatroom.user.dto.UserInfoDTO;
-import com.chatroom.user.exception.AuthorityException;
-import com.chatroom.user.exception.UserCanceledException;
 import com.chatroom.user.exception.UserNotFoundException;
 import com.chatroom.room.dao.RoomCacheRepository;
-import com.chatroom.user.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service

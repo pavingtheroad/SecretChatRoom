@@ -1,4 +1,4 @@
-package com.chatroom.component;
+package com.chatroom.room.component;
 
 import com.chatroom.room.dao.RoomCacheRepository;
 import com.chatroom.room.exception.RoomAuthorityException;

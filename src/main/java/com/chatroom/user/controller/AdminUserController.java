@@ -1,10 +1,8 @@
-package com.chatroom.controller.user;
+package com.chatroom.user.controller;
 
-import com.chatroom.controller.apiresponse.ApiResponse;
-import com.chatroom.user.dto.UserInfoDTO;
+import com.chatroom.util.ApiResponse;
 import com.chatroom.user.dto.UserInfoForAdmin;
 import com.chatroom.user.service.AdminUserService;
-import com.chatroom.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

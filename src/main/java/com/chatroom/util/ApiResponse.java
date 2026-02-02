@@ -1,4 +1,4 @@
-package com.chatroom.controller.apiresponse;
+package com.chatroom.util;
 
 public record ApiResponse<T>(
         String status,

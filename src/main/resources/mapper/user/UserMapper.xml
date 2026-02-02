@@ -5,11 +5,11 @@
 <mapper namespace="com.chatroom.user.dao.UserMapper">
     <insert id="insertUser">
         INSERT INTO user_info(user_id, user_name, avatart_url, password, email, status)
-        VALUES (#{userId}, #{userName}, #{avatarUrl}, #{password}, #{email}, #{status})
+        VALUES (#{userPKId}, #{userName}, #{avatarUrl}, #{password}, #{email}, #{status})
     </insert>
 <!--    将外部使用的userId 转换为内部通用的 PKid-->
     <select id="selectPKIdByUserId">
-        SELECT id FROM user_info WHERE user_id = #{userId}
+        SELECT id FROM user_info WHERE user_id = #{userPKId}
     </select>
 <!--    将内部PKid转换为外部userId-->
     <select id="selectUserIdByPKId">
@@ -21,7 +21,7 @@
     </select>
 <!--    通过userId查找用户 | 对外查询入口-->
     <select id="selectUserByUserId">
-        SELECT * FROM user_info WHERE user_id = #{userId}
+        SELECT * FROM user_info WHERE user_id = #{userPKId}
     </select>
 
     <select id="selectUserByName">
@@ -33,7 +33,7 @@
     </update>
 
     <update id="updateUserInfo">
-        UPDATE user_info SET user_name = #{userName}, avatar_url = #{avatarUrl}, email = #{email}, user_id = #{userId} WHERE id = #{id}
+        UPDATE user_info SET user_name = #{userName}, avatar_url = #{avatarUrl}, email = #{email}, user_id = #{userPKId} WHERE id = #{id}
     </update>
 
     <select id="getUserRoles">

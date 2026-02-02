@@ -1,16 +1,13 @@
-package com.chatroom.controller.room;
+package com.chatroom.room.controller;
 
-import com.chatroom.controller.apiresponse.ApiResponse;
+import com.chatroom.util.ApiResponse;
 import com.chatroom.room.dto.RoomInfo;
 import com.chatroom.room.dto.RoomInfoUpdate;
 import com.chatroom.room.service.RoomOwnerService;
 import com.chatroom.room.service.RoomService;
-import com.chatroom.room.service.RoomServiceImpl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Set;
 
 @RestController

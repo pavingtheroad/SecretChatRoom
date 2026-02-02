@@ -1,7 +1,7 @@
 package com.chatroom.room.service;
 
 import com.chatroom.security.component.IdentityResolver;
-import com.chatroom.component.RoomAuthorization;
+import com.chatroom.room.component.RoomAuthorization;
 import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.room.dao.RoomCacheRepository;
 import com.chatroom.room.dto.RoomInfoUpdate;

@@ -1,4 +1,4 @@
-package com.chatroom.controller.user;
+package com.chatroom.user.controller;
 
 import com.chatroom.facade.UserLifecycleService;
 import com.chatroom.user.dto.UserInfoUpdate;
