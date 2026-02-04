@@ -223,3 +223,21 @@ Notes
     - 验证客户端的登录凭证 -> 正确则返回JWT
     - 接收客户端的可变userId 和 password, 在凭证验证结束后将不可变的userPKId, Roles保存在JWT中返回给客户端，
     在后续的一系列请求中从token获取的就是不可变的userPKId
+## 2026/02/03
+### WebSocket 模块设计
+- 结构
+  - config
+  - interceptor
+  - handler
+  - dto
+- handler
+  - afterConnectionEstablished（绑定userId、更新 session）
+  - afterConnectionClosed（注销 session）
+- session管理
+  - sessionContext WebsocketSession源
+    * sessionId
+    * WebSocketSession
+    * userId
+    * roomId
+  - userSession 用户索引 | 用户可能多端/多连接（用于广播到用户的所有设备）
+  - RoomSession 房间索引 | 房间内的在线连接

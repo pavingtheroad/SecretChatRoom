@@ -71,7 +71,8 @@ public class JwtProvider {
         SecurityUser securityUser = new SecurityUser(userPKId, null,
                 roles.stream()
                         .map(role -> (GrantedAuthority) () -> role)
-                .collect(Collectors.toList()));
+                        .collect(Collectors.toList()));
+        // securityUser->principal（用户身份）；credentials（用户凭证）；authorities（用户权限）
         return new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
     }
     public String getUserId(String token) throws ParseException {

@@ -19,9 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig{
-    private final JwtProvider jwtProvider;
+    private final JwtFilter jwtFilter;
     public SecurityConfig(JwtProvider jwtProvider) {
-        this.jwtProvider = jwtProvider;
+        this.jwtFilter = new JwtFilter(jwtProvider);
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -29,8 +29,8 @@ public class SecurityConfig{
                 .csrf(AbstractHttpConfigurer::disable)      // 关闭CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 不使用session
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("auth/login").permitAll()
-                        .requestMatchers("public").permitAll()
+                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/public").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) ->
@@ -38,7 +38,7 @@ public class SecurityConfig{
                         .accessDeniedHandler((req, res, e) ->
                                 res.setStatus(HttpServletResponse.SC_FORBIDDEN))
                 )
-                .addFilterBefore(jwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
     @Bean
@@ -49,8 +49,5 @@ public class SecurityConfig{
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
-    @Bean
-    public JwtFilter jwtFilter(JwtProvider jwtProvider){
-        return new JwtFilter(jwtProvider);
-    }
+
 }
