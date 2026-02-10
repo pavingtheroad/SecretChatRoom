@@ -1,10 +1,11 @@
 package com.chatroom.websocket.dto;
 
-import com.chatroom.message.domain.MessageType;
+import com.chatroom.websocket.enums.MessageType;
 
 public record WsMessageRequest(
-        String roomId,
         MessageType type,
-        String content
+        String roomId,
+        String content,
+        String requestId
 ) {
 }

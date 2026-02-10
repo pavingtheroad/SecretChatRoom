@@ -102,12 +102,6 @@ public class MessageQueryService {
                             v.get("content").toString()
 
                     );
-//                    MessageDTO dto = new MessageDTO();
-//                    dto.setUserPKId((String) v.get("userId"));
-//                    dto.setTimestamp(Long.parseLong(v.get("timestamp").toString()));
-//                    dto.setType((String) v.get("type"));
-//                    dto.setContent((String) v.get("content"));
-//                    return dto;
                 })
                 .toList();
     }

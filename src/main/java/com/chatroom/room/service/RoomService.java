@@ -1,6 +1,7 @@
 package com.chatroom.room.service;
 
 import com.chatroom.room.dto.RoomInfo;
+import com.chatroom.room.exception.RoomNotFoundException;
 
 import java.util.Set;
 
@@ -17,4 +18,8 @@ public interface RoomService {
     Set<String> joinedRoomsId(String userPKId);
 
     Set<String> getRoomMembersId(String roomId);    // 或许一次请求把信息全部放在前端？或者只返回ids，进一步查看再返回单个用户信息？
+
+    Boolean authorizeRoomAccess(String roomId, String userPKId) throws RoomNotFoundException;
+
+    Boolean roomExists(String roomId);    // 仅用于读路径的快速校验
 }

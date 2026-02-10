@@ -3,9 +3,8 @@ package com.chatroom.message.service;
 
 import com.chatroom.message.dao.RoomStateRepository;
 import com.chatroom.message.domain.MessageType;
-import com.chatroom.message.dto.MessageDTO;
 import com.chatroom.message.dao.MessageCacheRepository;
-import com.chatroom.message.entity.Message;
+import com.chatroom.message.entity.ChatMessage;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +18,16 @@ public class MessageWriteService {
         this.messageCacheRepository = messageCacheRepository;
         this.roomStateRepository = roomStateRepository;
     }
-    public void sendMessage(Long roomId, String content){
-        Long senderId = 1001L;    // 实际由校验服务获取当前用户ID
-        RecordId id = messageCacheRepository.saveMessage(new Message(
+    public ChatMessage saveMessage(String senderId, String roomId, String content){
+        ChatMessage message = new ChatMessage(
                 roomId,
                 senderId,
                 MessageType.TEXT,
                 content,
                 Instant.now().toEpochMilli()
-        ));
-        roomStateRepository.updateLastMessageId(roomId.toString(), id.getValue().toString());
+        );
+        RecordId id = messageCacheRepository.saveMessage(message);
+        roomStateRepository.updateLastMessageId(roomId, id.getValue().toString());
+        return message;
     }
 }

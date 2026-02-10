@@ -19,14 +19,14 @@
 ## Message Service
 -- Life Cycle Management
 
-- [MessageService](src/main/java/com/chatroom/message/service/MessageService.java)
+- [MessageService](src/main/java/com/chatroom/chatMessage/service/MessageService.java)
 ## Message Cache
 - Message的Redis持久化`-- 2025/10/28`
   - 定义MessageDTO
   - 先使用Sorted Set完成阅后即焚的功能（原生支持TTL消息）**后期可过渡到Redis Stream，实现类似微信的平滑消息流**
   - 存储结构：
     - Sorted Set：key:chatroom:{roomId} value:messageId  score:timestamp
-    - SETEX: key:message:messageId value:messageJSON TTL
+    - SETEX: key:chatMessage:messageId value:messageJSON TTL
   - 具体方法：
     - 保存消息并设置TTL
     - 消息绑定至chatRoom
@@ -64,7 +64,7 @@
 
       public record ApiResponse<T>(
               String status,
-              String message,
+              String chatMessage,
               T data,
               Object metaData
       ) {

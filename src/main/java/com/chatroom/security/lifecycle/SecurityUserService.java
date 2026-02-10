@@ -23,8 +23,6 @@ public class SecurityUserService implements UserDetailsService {
         this.userMapper = userMapper;
         this.userIdentityResolver = userIdentityResolver;
     }
-
-
     /**
      *
      * @param userId 这个userId是登录凭证，是可变userId

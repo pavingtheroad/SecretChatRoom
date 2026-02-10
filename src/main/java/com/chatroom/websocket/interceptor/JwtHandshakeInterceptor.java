@@ -45,6 +45,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         String roomId = httpRequest.getParameter("roomId");
         if (!roomService.authorizeRoomAccess(roomId, securityUser.getUsername()))   // 用户是否属于要加入的房间，避免劫持roomId发起请求
             return false;
+        attributes.put("ROOM_ID", roomId);
         return true;
     }
 

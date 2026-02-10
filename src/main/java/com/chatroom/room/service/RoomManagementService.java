@@ -36,18 +36,6 @@ public class RoomManagementService {
         });
     }
 
-    public void broadcast(String roomId, MessageDTO msg){
-        Set<WebSocketSession> sessions = roomMap.get(roomId);
-        if (sessions == null) return;
-        for (WebSocketSession s : sessions) {
-            try{
-                sendSafely(s, objectMapper.writeValueAsString(msg));
-            } catch (JsonProcessingException e){
-                log.error("JsonProcessingIssue while broadcasting,{}",e);
-            }
-        }
-    }
-
     private void sendSafely(WebSocketSession session, String msg) {
         try {
             if (session.isOpen()) {

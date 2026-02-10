@@ -1,10 +1,9 @@
-package com.chatroom.websocket.session;
+package com.chatroom.websocket.component;
 
 import com.chatroom.websocket.domain.SessionContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,23 +22,24 @@ public class SessionManager {
      * 创建新SessionContext并保存进session，socketSession直接作为WebsocketSession成员、sessionId为websocketSession.getId()
      */
     public void register(WebSocketSession session){
-        SessionContext sessionContext = new SessionContext(session.getId(), session);
-        sessionContextMap.put(session.getId(), sessionContext);
+        String sessionId = session.getId();
+        SessionContext old = sessionContextMap.putIfAbsent(
+                sessionId, new SessionContext(sessionId, session)
+        );
     }
     /**
      * 绑定UserId;
      * 若检测到sessionId的会话中已绑定了UserId，则返回false/异常
      * 若userContext的userId键没有值，则创建ConcurrentHashMap.newKeySet()并加入sessionId; 否则添加sessionId
      */
-    public void bindUserId(String sessionId, Long userId){
+    public void bindUserId(String sessionId, String userId){
         SessionContext sessionContext = sessionContextMap.get(sessionId);
         if (sessionContext == null){
-            throw new IllegalArgumentException("sessionId not found");
+            return;
         }
 
-        String uid = String.valueOf(userId);
         String oldUserId = sessionContext.getUserId() == null ? null : String.valueOf(sessionContext.getUserId());
-        if (Objects.equals(oldUserId, uid)) {
+        if (Objects.equals(oldUserId, userId)) {
             return; // 幂等
         }
         // 解绑旧的userId
@@ -52,8 +52,26 @@ public class SessionManager {
                 }
             }
         }
-        userContext.computeIfAbsent(uid, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
-        sessionContext.setUserId(uid);
+        userContext.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
+        sessionContext.setUserId(userId);
+    }
+    public void unbindUserId(String sessionId){
+        SessionContext sessionContext = sessionContextMap.get(sessionId);
+        if (sessionContext == null){
+            throw new IllegalArgumentException("sessionId not found");
+        }
+        String userId = sessionContext.getUserId();    // 清理用户会话索引
+        if (userId != null){
+            Set<String> sessions = userContext.get(userId);
+            if (sessions != null){
+                sessions.remove(sessionId);
+                if (sessions.isEmpty()){
+                    userContext.remove(userId);
+                }
+            }
+        }
+        sessionContext.setUserId(null);
+
     }
     /**
      * 绑定Room;
@@ -110,31 +128,20 @@ public class SessionManager {
      * 若roomContext、userContext的Set为空，则删除键
      * 关闭websocketSession
      */
-    public void closeSession(String sessionId) throws IOException {
-        SessionContext sessionContext = sessionContextMap.remove(sessionId);    // 删除sessionId的会话
-        if (sessionContext != null){
-            String roomId = sessionContext.getRoomId();    // 清理房间会话索引
-            if (roomId != null){
-                Set<String> sessions = roomContext.get(roomId);
-                if (sessions != null){
-                    sessions.remove(sessionId);
-                    if (sessions.isEmpty()){
-                        roomContext.remove(roomId);
-                    }
-                }
-            }
-            String userId = sessionContext.getUserId();    // 清理用户会话索引
-            if (userId != null){
-                Set<String> sessions = userContext.get(userId);
-                if (sessions != null){
-                    sessions.remove(sessionId);
-                    if (sessions.isEmpty()){
-                        userContext.remove(userId);
-                    }
-                }
-            }
+    public void closeSession(String sessionId){
+        SessionContext sessionContext = sessionContextMap.get(sessionId);
+        if (sessionContext == null) {
+            return; // 幂等
         }
-        sessionContext.getSession().close();
+        leaveRoom(sessionId);
+        unbindUserId(sessionId);
+        sessionContextMap.remove(sessionId);    // 删除sessionId的会话
+        try {
+            sessionContext.getSession().close();
+        } catch (Exception ignored){
+
+        }
+
     }
     /**
      * 获取SessionContext
@@ -146,12 +153,20 @@ public class SessionManager {
      * 获取房间内的所有会话Id
      */
     public Set<String> getRoomSessionsId(String roomId){
-        return roomContext.get(roomId);
+        Set<String> set = roomContext.get(roomId);
+        return set == null ? Set.of() : Set.copyOf(set);    // 浅拷贝，但String为不可变类型
     }
     /**
      * 获取用户所有的会话Id
      */
     public Set<String> getUserSessionsId(String userId){
-        return userContext.get(userId);
+        Set<String> set = userContext.get(userId);
+        return set == null ? Set.of() : Set.copyOf(set);
+    }
+
+    public void kickUser(String userId) {
+        for (String sessionId : getUserSessionsId(userId)) {
+            closeSession(sessionId);
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.chatroom.message.dao;
 
-import com.chatroom.message.entity.Message;
+import com.chatroom.message.entity.ChatMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Range;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * 消息缓存仓库
- * - sendMessage: 将消息保存到指定聊天室的Redis流中，返回生成的消息ID
+ * - saveMessage: 将消息保存到指定聊天室的Redis流中，返回生成的消息ID
  * - reverseRangeMessages: 从指定聊天室按倒序分页查询消息列表
  * - rangeMessages: 从指定聊天室按正序分页查询消息列表
  * - trimMessage: 对指定聊天室的消息进行剪枝，删除早于截止ID的消息
@@ -36,15 +36,15 @@ public class MessageCacheRepository {
      * 保存消息 Redis自动生成id
      * 无条件信任来自服务层的参数正确性
      */
-    public RecordId saveMessage(Message message){
-        String roomId = message.roomId().toString();
+    public RecordId saveMessage(ChatMessage chatMessage){
+        String roomId = chatMessage.roomId();
         String streamKey = "chat:room:" + roomId + ":msg";
-        String userPKId = message.senderId().toString();
+        String userPKId = chatMessage.senderId();
         HashMap<String, Object> value = new HashMap<>();
         value.put("userId", userPKId);
-        value.put("type", message.type().name());
-        value.put("content", message.content());
-        value.put("timestamp", message.createdAt());
+        value.put("type", chatMessage.type().name());
+        value.put("content", chatMessage.content());
+        value.put("timestamp", chatMessage.createdAt());
         return redisTemplate.opsForStream().add(streamKey, value);
     }
 

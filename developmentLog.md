@@ -226,13 +226,14 @@ Notes
 ## 2026/02/03
 ### WebSocket 模块设计
 - 结构
-  - config
-  - interceptor
-  - handler
-  - dto
+    - config
+    - interceptor
+    - handler
+    - dto
 - handler
-  - afterConnectionEstablished（绑定userId、更新 session）
-  - afterConnectionClosed（注销 session）
+    - afterConnectionEstablished（绑定userId、更新 session、绑定roomId）
+    - afterConnectionClosed（注销 session、注销user下的session、注销room下的session）
+    - handleTransportError（关闭连接）
 - session管理
   - sessionContext WebsocketSession源
     * sessionId
@@ -241,3 +242,47 @@ Notes
     * roomId
   - userSession 用户索引 | 用户可能多端/多连接（用于广播到用户的所有设备）
   - RoomSession 房间索引 | 房间内的在线连接
+  - 生命周期
+    - 会话、用户|房间 索引创建
+    - 会话、用户|房间 索引删除
+    - 广播（到房间、用户多端同步）
+- Websocket消息协议
+    - 请求协议
+  
+          {
+              "type": "JOIN | LEAVE | TEXT | HEARTBEAT",
+              "roomId": "string",
+              "content": "string",
+              "requestId": "uuid"
+          }
+    - 响应
+  
+          {
+              "type": "ACK | ERROR",
+              "requestId": "uuid",
+              "roomId": "string",
+              “sender": "string",
+              "code": "ROOM_MISMATCH | NO_PERMISSION | NOT_IN_ROOM",
+              "content": "string"
+              "serverTimeStamp": "long"
+          }
+## 2026/02/06
+### WebSocket与Message模块功能划分与重构
+- WebSocket
+  - MessageDispatcher: 消息投递
+- Message
+  - MessageWriteService: 消息持久化，接受处理好的WsMessageResponse
+## 2026/02/09
+### WebSocket逻辑
+- MessageHandler -> Router -> Processor -> RoomWriteService | MessageDispatcher
+- 协议状态 
+    - JOIN
+
+  | 当前状态   | 收到消息  | 结果    |
+  | ------ | ----- | ----- |
+  | null   | TEXT  | ERROR |
+  | null   | JOIN  | OK    |
+  | JOINED | JOIN  | ERROR |
+  | JOINED | LEAVE | OK    |
+  | JOINED | TEXT  | OK    |
+
