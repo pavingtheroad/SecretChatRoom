@@ -33,7 +33,18 @@ public record WsMessageResponse(
                 null,
                 null,
                 WsErrorCode.INVALID_CONTEXT.name(),
-                "Invalid session context",
+                "REJECT",
+                System.currentTimeMillis()
+        );
+    }
+    public static WsMessageResponse invalidMessageType(String requestId){
+        return new WsMessageResponse(
+                WsResponseType.ERROR,
+                requestId,
+                null,
+                null,
+                WsErrorCode.INVALID_MESSAGE_TYPE.name(),
+                "REJECT",
                 System.currentTimeMillis()
         );
     }
@@ -44,7 +55,7 @@ public record WsMessageResponse(
                 null,
                 null,
                 WsErrorCode.NOT_ROOM_MEMBER.name(),
-                "User is not a member of the room",
+                "REJECT",
                 System.currentTimeMillis()
         );
     }
@@ -123,6 +134,17 @@ public record WsMessageResponse(
                 message.senderId(),
                 null,
                 "OK", // 未来更新为生成的messageId
+                System.currentTimeMillis()
+        );
+    }
+    public static WsMessageResponse heartbeatAck(String requestId) {
+        return new WsMessageResponse(
+                WsResponseType.ACK,
+                requestId,
+                null,
+                null,
+                null,
+                "OK",
                 System.currentTimeMillis()
         );
     }

@@ -8,3 +8,6 @@ spring:
 # default ttl of messages
 message-config:
   default-ttl: 3600
+
+session:
+  expire-time: 3600000    # 1 hour

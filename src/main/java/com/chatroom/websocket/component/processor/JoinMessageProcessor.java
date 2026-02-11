@@ -54,6 +54,7 @@ public class JoinMessageProcessor implements MessageProcessor{
                     WsMessageResponse.notRoomMember(request.requestId()));
             return;
         }
+        ctx.updateActiveTime();
         sessionManager.joinRoom(ctx.getSessionId(), roomId);
         messageDispatcher.sendAck(ctx.getSessionId(),
                 WsMessageResponse.joinRoomAccepted(request.requestId(), roomId));

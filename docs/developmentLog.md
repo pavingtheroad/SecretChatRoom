@@ -128,7 +128,7 @@ Notes
 ### 控制层设计
 - 普通用户
     1. 注册账户
-        - 参数为[RegisterDTO](src/main/java/com/chatroom/user/dto/UserRegisterDTO.java)
+        - 参数为[RegisterDTO](../src/main/java/com/chatroom/user/dto/UserRegisterDTO.java)
         - 返回状态码以及提示信息 ResponseEntity
     2. 用户信息更新
     3. 用户注销
@@ -285,4 +285,8 @@ Notes
   | JOINED | JOIN  | ERROR |
   | JOINED | LEAVE | OK    |
   | JOINED | TEXT  | OK    |
+## 2026/02/10
+### websocket协议文档
+
+
 

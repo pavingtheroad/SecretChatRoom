@@ -4,9 +4,11 @@ import com.chatroom.websocket.domain.SessionContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 public class SessionManager {
@@ -137,7 +139,10 @@ public class SessionManager {
         unbindUserId(sessionId);
         sessionContextMap.remove(sessionId);    // 删除sessionId的会话
         try {
-            sessionContext.getSession().close();
+            if (sessionContext.getSession().isOpen()) {
+                sessionContext.getSession().close();
+            }
+
         } catch (Exception ignored){
 
         }
@@ -162,6 +167,13 @@ public class SessionManager {
     public Set<String> getUserSessionsId(String userId){
         Set<String> set = userContext.get(userId);
         return set == null ? Set.of() : Set.copyOf(set);
+    }
+
+    /**
+     * 获取全部SessionContext
+     */
+    public Set<SessionContext> getAllSessionContext(){
+        return new HashSet<>(sessionContextMap.values());
     }
 
     public void kickUser(String userId) {
