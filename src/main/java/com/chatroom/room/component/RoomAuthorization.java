@@ -11,7 +11,7 @@ public class RoomAuthorization {
         this.roomCacheRepository = roomCacheRepository;
     }
     public void checkRoomOwner(String roomId, String userPKId){
-         if (roomCacheRepository.isRoomOwner(roomId, userPKId)){
+         if (!roomCacheRepository.isRoomOwner(roomId, userPKId)){
             throw new RoomAuthorityException(roomId);
          }
     }

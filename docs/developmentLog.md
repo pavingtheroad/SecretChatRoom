@@ -3,9 +3,9 @@
 1. 确定 Redis 存储模型
    1. 房间元数据 `HASH` 
    
-            `room:{roomId}
+            `chat:room:{roomId}
                   roomName
-                  owner
+                  ownerId    (存储时为userPKId)
                   description
                   createdAt
                   muted    (禁言)
@@ -13,10 +13,10 @@
                   ttlMillis`   
    2. 房间成员列表 `SET`
 
-      `room:{roomId}:members `
+      `chat:room:{roomId}:members `
    3. 用户加入的房间列表 `SET`
    
-      `user:{userPKId}:rooms `
+      `chat:user:{userPKId}:rooms `
 2. 接口设计（写数据时注意原子性）
    1. RoomRepository
       1. createRoom `params: RoomInfoDTO`    创建房间

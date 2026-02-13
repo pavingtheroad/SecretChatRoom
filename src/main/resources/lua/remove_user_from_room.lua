@@ -1,5 +1,5 @@
--- KEYS[1] = room:{roomId}
--- KEYS[2] = room:{roomId}:members
+-- KEYS[1] = chatroom:{roomId}
+-- KEYS[2] = chatroom:{roomId}:members
 -- KEYS[3] = user:{userId}:rooms
 -- ARGV[1] = userId
 -- ARGV[2] = roomId

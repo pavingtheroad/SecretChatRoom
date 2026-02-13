@@ -1,5 +1,5 @@
--- KEYS[1] = room:{roomId}
--- KEYS[2] = room:{roomId}:members
+-- KEYS[1] = chat:room:{roomId}
+-- KEYS[2] = chat:room:{roomId}:members
 -- KEYS[3] = user:{userId}:rooms
 -- ARGV[1] = userId
 -- ARGV[2] = roomId
@@ -9,9 +9,16 @@ end
 if redis.call('SISMEMBER', KEYS[2], ARGV[1]) == 1 then    -- 若用户已加入该房间则返回-1
     return -1
 end
-if redis.call('SISMEMBER', KEYS[3], ARGV[2]) == 1 then    -- 若用户已加入该房间则返回-1')
-    return -1
+
+--if redis.call('SISMEMBER', KEYS[3], ARGV[2]) == 1 then    -- 若用户已加入该房间则返回-1
+--    return -1
+--end
+
+local locked = redis.call('HGET', KEYS[1], "locked")
+if tostring(locked) == "true" then    -- 若房间被锁住则返回-2
+    return -2
 end
+
 redis.call('SADD', KEYS[2], ARGV[1])
 redis.call('SADD', KEYS[3], ARGV[2])
 return 1    -- 添加成功

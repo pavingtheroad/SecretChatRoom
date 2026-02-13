@@ -3,6 +3,7 @@ package com.chatroom.room.dao;
 import com.chatroom.room.dto.RoomInfo;
 import com.chatroom.room.dto.RoomInfoUpdate;
 import com.chatroom.room.exception.RoomAlreadyExistsException;
+import com.chatroom.room.exception.RoomAuthorityException;
 import com.chatroom.room.exception.RoomNotFoundException;
 import com.chatroom.user.exception.UserAlreadyExistsException;
 import com.chatroom.user.exception.UserNotFoundException;
@@ -35,9 +36,10 @@ public class RoomCacheRepository {
         this.batchGetRoomInfoScript = batchGetRoomInfoScript;
     }
 
-    private static final String ROOM_KEY_PREFIX = "room:";
+    private static final String ROOM_KEY_PREFIX = "chat:room:";
     public void createRoom(RoomInfo roomInfo) throws RoomAlreadyExistsException {
-        String key = ROOM_KEY_PREFIX + roomInfo.roomId();
+        String roomId = roomInfo.roomId();
+        String key = ROOM_KEY_PREFIX + roomId;
         List<String> keys = List.of(key);
         Long result = redisTemplate.execute(
                 createRoomScript,
@@ -48,28 +50,27 @@ public class RoomCacheRepository {
                 roomInfo.createdAt(),
                 roomInfo.muted(),
                 roomInfo.locked(),
-                roomInfo.ttlMillis()
+                roomInfo.ttlMillis(),
+                roomId
         );
-
-        if (result == 0L) throw new RoomAlreadyExistsException(roomInfo.roomId());
-
+        if (result == 0L) throw new RoomAlreadyExistsException(roomId);
     }
 
     public RoomInfo getRoomInfo(String roomId) throws RoomNotFoundException {
         String key = ROOM_KEY_PREFIX + roomId;
-        if(!roomExists(roomId)){
+        Map<Object, Object> roomData = redisTemplate.opsForHash().entries(key);
+        if (roomData.isEmpty()){
             throw new RoomNotFoundException(roomId);
         }
-        Map<Object, Object> roomData = redisTemplate.opsForHash().entries(key);
         return new RoomInfo(
                 roomId,
                 (String) roomData.get("roomName"),
                 (String) roomData.get("ownerId"),
                 (String) roomData.get("description"),
-                (Long) roomData.get("createdAt"),
-                (Boolean) roomData.get("muted"),
-                (Boolean) roomData.get("locked"),
-                (Long) roomData.get("ttlMillis")
+                roomData.get("createdAt") != null ? Long.parseLong((String) roomData.get("createdAt")) : null,
+                roomData.get("muted") != null ? Boolean.parseBoolean((String) roomData.get("muted")) : null,
+                roomData.get("locked") != null ? Boolean.parseBoolean((String) roomData.get("locked")) : null,
+                roomData.get("ttlMillis") != null ? Long.parseLong((String) roomData.get("ttlMillis")) : null
         );
     }
     // 批量获取房间信息
@@ -93,16 +94,17 @@ public class RoomCacheRepository {
         return result;
     }
     // 默认在此前进行了用户存在性校验
-    public Boolean addUserToRoom(String roomId, String userPKId) throws RoomNotFoundException, UserAlreadyExistsException {        // 参数userPKId对应数据库中id
-        String roomKey = ROOM_KEY_PREFIX + roomId + ":members";
+    public long addUserToRoom(String roomId, String userPKId) throws RoomNotFoundException, UserAlreadyExistsException {        // 参数userPKId对应数据库中id
+        String roomKey = ROOM_KEY_PREFIX + roomId;
+        String roomUserKey = roomKey + ":members";
         String userKey = "user:" + userPKId + ":rooms";
 
-        List<String> keys = List.of(roomKey, userKey);
+        List<String> keys = List.of(roomKey, roomUserKey, userKey);
 
-        Long result = redisTemplate.execute(addUserToRoomScript, keys, roomId, userPKId);
+        long result = redisTemplate.execute(addUserToRoomScript, keys, userPKId, roomId);
         if (result == 0L) throw new RoomNotFoundException(roomId);
         else if (result == -1L) throw new UserAlreadyExistsException(userPKId);
-        else return true;
+        return result;    // 只过滤掉房间不存在和用户已添加的情况
     }
 
     public Boolean removeUserFromRoom(String roomId, String userPKId) throws RoomNotFoundException, UserNotFoundException {
@@ -139,13 +141,13 @@ public class RoomCacheRepository {
 
         Long result = redisTemplate.execute(deleteRoomScript, keys, roomId);
 
-        if (result == 0L){
-            throw new RoomNotFoundException(roomId);
-        }
         if (result == null) {
             throw new IllegalStateException("deleteRoom script returned null");
         }
-        return result != null && result == 1L;
+        if (result == 0L){
+            throw new RoomNotFoundException(roomId);
+        }
+        return result == 1L;
     }
 
     public void updateRoomInfo(String roomId, RoomInfoUpdate roomInfo) throws RoomNotFoundException {
@@ -166,15 +168,20 @@ public class RoomCacheRepository {
 
     }
     // 用户是否属于房间
-    public Boolean authorizeRoomAccess(String roomId, String userPKId) throws RoomNotFoundException {
+    public Boolean authorizeRoomAccess(String roomId, String userPKId){
         String key = ROOM_KEY_PREFIX + roomId;
         if (!roomExists(roomId)){
             throw new RoomNotFoundException(roomId);
         }
         return redisTemplate.opsForSet().isMember(key + ":members", userPKId);
     }
-    // 用户是否为房主
+    /**
+     * 用户是否为房主
+     */
     public Boolean isRoomOwner(String roomId, String userPKId){
+        if (!roomExists(roomId)){
+            throw new RoomNotFoundException(roomId);
+        }
         return Objects.equals(redisTemplate.opsForHash().get(ROOM_KEY_PREFIX + roomId, "ownerId"), userPKId);
     }
 

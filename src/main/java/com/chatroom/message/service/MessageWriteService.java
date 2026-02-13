@@ -27,7 +27,7 @@ public class MessageWriteService {
                 Instant.now().toEpochMilli()
         );
         RecordId id = messageCacheRepository.saveMessage(message);
-        roomStateRepository.updateLastMessageId(roomId, id.getValue().toString());
+        roomStateRepository.updateRoomState(roomId, id.getValue().toString());
         return message;
     }
 }

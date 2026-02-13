@@ -1,5 +1,6 @@
 package com.chatroom.room.service;
 
+import com.chatroom.room.exception.RoomNotFoundException;
 import com.chatroom.security.component.IdentityResolver;
 import com.chatroom.room.component.RoomAuthorization;
 import com.chatroom.component.UserIdentityResolver;
@@ -12,7 +13,9 @@ public class RoomOwnerServiceImpl implements RoomOwnerService{
     private final RoomCacheRepository roomCacheRepository;
     private final UserIdentityResolver userIdentityResolver;
     private final RoomAuthorization roomAuthorization;
-    public RoomOwnerServiceImpl(RoomCacheRepository roomCacheRepository, UserIdentityResolver userIdentityResolver, RoomAuthorization roomAuthorization) {
+    public RoomOwnerServiceImpl(RoomCacheRepository roomCacheRepository,
+                                UserIdentityResolver userIdentityResolver,
+                                RoomAuthorization roomAuthorization) {
         this.roomCacheRepository = roomCacheRepository;
         this.userIdentityResolver = userIdentityResolver;
         this.roomAuthorization = roomAuthorization;
@@ -33,9 +36,10 @@ public class RoomOwnerServiceImpl implements RoomOwnerService{
     }
 
     @Override
-    public void deleteRoom(String roomId) {
+    public void deleteRoom(String roomId) throws RoomNotFoundException {
         String userPKId = IdentityResolver.currentUserPKId().toString();
         roomAuthorization.checkRoomOwner(roomId, userPKId);
         roomCacheRepository.deleteRoom(roomId);
+
     }
 }
