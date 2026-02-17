@@ -35,6 +35,7 @@ public class MessageQueryService {
             return Collections.emptyList();
         }
         Range<String> range = Range.leftUnbounded(Range.Bound.inclusive(startId));      // 从cursor向前查询
+        limit = Math.max(limit, 1);
         Limit lim = Limit.limit().count(limit);
         List<MapRecord<String, Object, Object>> records = messageCacheRepository.reverseRangeMessages(roomId, range, lim);
         // cursor失效后的兜底
@@ -46,10 +47,12 @@ public class MessageQueryService {
 
             range = Range.leftUnbounded(Range.Bound.inclusive(lastId.get()));
             records = messageCacheRepository.reverseRangeMessages(roomId, range, lim);
+            Collections.reverse(records);
+            MapRecord<String, Object, Object> last = records.get(records.size() - 1);
+            messageCursorRepository.updateCursor(roomId, userPKId, last.getId().getValue());    // cursor同步到最新消息
+            return convertToMessageDTO(records);
         }
         Collections.reverse(records);
-        MapRecord<String, Object, Object> last = records.get(records.size() - 1);
-        messageCursorRepository.updateCursor(roomId, userPKId, last.getId().getValue());    // cursor同步到最新消息
         return convertToMessageDTO(records);
     }
     /**
@@ -61,6 +64,7 @@ public class MessageQueryService {
                                                String start,
                                                int limit) {
         Range<String> range = Range.leftUnbounded(Range.Bound.exclusive(start));
+        limit = Math.max(limit, 1);
         Limit lim = Limit.limit().count(limit);
         List<MapRecord<String, Object, Object>> records =
                 messageCacheRepository.reverseRangeMessages(roomId, range, lim);
@@ -84,10 +88,11 @@ public class MessageQueryService {
         Limit lim = Limit.limit().count(limit);
         List<MapRecord<String, Object, Object>> records =
                 messageCacheRepository.rangeMessages(roomId, range, lim);
-        if (!records.isEmpty()) {
-            MapRecord<String, Object, Object> newest = records.get(records.size() - 1);
-            messageCursorRepository.updateCursor(roomId, userPKId, newest.getId().getValue());
+        if (records.isEmpty()) {
+            return Collections.emptyList();
         }
+        MapRecord<String, Object, Object> newest = records.get(records.size() - 1);
+        messageCursorRepository.updateCursor(roomId, userPKId, newest.getId().getValue());
         return convertToMessageDTO(records);
     }
     // 将RedisRecord转换为MessageDTO
@@ -96,11 +101,10 @@ public class MessageQueryService {
                 .map(record -> {
                     Map<Object, Object> v = record.getValue();
                     return new MessageDTO(
-                            v.get("roomId").toString(),
-                            v.get("userId").toString(),     // senderId
+                            String.valueOf(v.get("senderId")),     // senderId
                             v.get("type").toString(),
-                            v.get("content").toString()
-
+                            v.get("content").toString(),
+                            v.get("createdAt").toString()
                     );
                 })
                 .toList();

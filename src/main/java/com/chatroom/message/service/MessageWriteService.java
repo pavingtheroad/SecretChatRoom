@@ -13,21 +13,29 @@ import java.time.Instant;
 @Service
 public class MessageWriteService {
     private final MessageCacheRepository messageCacheRepository;
-    private final RoomStateRepository roomStateRepository;
-    public MessageWriteService(MessageCacheRepository messageCacheRepository, RoomStateRepository roomStateRepository){
+    public MessageWriteService(MessageCacheRepository messageCacheRepository){
         this.messageCacheRepository = messageCacheRepository;
-        this.roomStateRepository = roomStateRepository;
     }
-    public ChatMessage saveMessage(String senderId, String roomId, String content){
+    public ChatMessage saveMessage(String senderId, String roomId, String content, String requestId){
         ChatMessage message = new ChatMessage(
+                null,
                 roomId,
                 senderId,
                 MessageType.TEXT,
                 content,
                 Instant.now().toEpochMilli()
         );
-        RecordId id = messageCacheRepository.saveMessage(message);
-        roomStateRepository.updateRoomState(roomId, id.getValue().toString());
-        return message;
+        Long messageId = messageCacheRepository.saveMessage(message, requestId);
+        if (messageId == null){
+            return null;
+        }
+        return new ChatMessage(
+                messageId.toString(),
+                roomId,
+                senderId,
+                MessageType.TEXT,
+                content,
+                Instant.now().toEpochMilli()
+        );
     }
 }

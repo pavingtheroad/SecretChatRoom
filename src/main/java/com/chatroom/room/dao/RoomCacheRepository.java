@@ -189,4 +189,8 @@ public class RoomCacheRepository {
     public boolean roomExists(String roomId){
         return redisTemplate.hasKey(ROOM_KEY_PREFIX + roomId);
     }
+
+    public Set<String> getAllRoomIds(){
+        return redisTemplate.opsForSet().members("chat:room");
+    }
 }

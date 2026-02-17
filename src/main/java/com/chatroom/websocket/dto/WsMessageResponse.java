@@ -124,14 +124,13 @@ public record WsMessageResponse(
         );
     }
     public static WsMessageResponse messageAccepted(
-            String requestId,
-            ChatMessage message
+            String requestId
     ) {
         return new WsMessageResponse(
                 WsResponseType.ACK,
                 requestId,
-                message.roomId(),
-                message.senderId(),
+                null,
+                null,
                 null,
                 "OK", // 未来更新为生成的messageId
                 System.currentTimeMillis()

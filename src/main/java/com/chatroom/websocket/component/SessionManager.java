@@ -28,6 +28,9 @@ public class SessionManager {
         SessionContext old = sessionContextMap.putIfAbsent(
                 sessionId, new SessionContext(sessionId, session)
         );
+        if (old != null){
+            closeSession(old.getSessionId());
+        }
     }
     /**
      * 绑定UserId;

@@ -5,6 +5,7 @@ import com.chatroom.user.exception.AuthorityException;
 import com.chatroom.user.exception.EmailOccupiedException;
 import com.chatroom.user.exception.UserException;
 import com.chatroom.user.exception.UserNotFoundException;
+import com.chatroom.util.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,5 +34,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JwtGenerateException.class)
     public ResponseEntity<String> handleJwtGenerate(JwtGenerateException e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(
+                new ApiResponse<>(
+                        "BAD_REQUEST",
+                        e.getMessage(),
+                        null,
+                        null
+                )
+        );
     }
 }

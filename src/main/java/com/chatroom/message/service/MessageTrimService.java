@@ -1,11 +1,9 @@
 package com.chatroom.message.service;
 
 import com.chatroom.message.dao.MessageCacheRepository;
-import com.chatroom.message.dao.MessageCursorRepository;
 import com.chatroom.room.dao.RoomCacheRepository;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +20,15 @@ public class MessageTrimService {
         this.messageCacheRepository = messageCacheRepository;
         this.roomCacheRepository = roomCacheRepository;
     }
+//    public void trimRoomMessages(String roomId) {
+//        Long ttlMillis = roomCacheRepository.getRoomInfo(roomId).ttlMillis();
+//        Long cutoffTime = Instant.now().toEpochMilli() - ttlMillis;
+//
+//        String cutoffId = cutoffTime + "-0";
+//
+//        messageCacheRepository.trimMessage(roomId, cutoffId);
+//    }
+
     public Long computeCutOffTime(String roomId){
         Long ttlMillis = roomCacheRepository.getRoomInfo(roomId).ttlMillis();
         Long now = Instant.now().toEpochMilli();
@@ -29,7 +36,7 @@ public class MessageTrimService {
     }
     public Optional<String> findCutOffStreamId(String roomId,Long cutoffTime){
         String startId = "-";
-        int batchSize = 100;
+        int batchSize = 100;    // 每次查询的批量大小
         boolean done = false;
         while (!done) {
             List<MapRecord<String, Object, Object>> records = messageCacheRepository.rangeMessages(roomId,
@@ -38,7 +45,7 @@ public class MessageTrimService {
             if (records.isEmpty())
                 return Optional.empty();
             for (MapRecord<String, Object, Object> record : records) {
-                Object timestamp = record.getValue().get("timestamp");
+                Object timestamp = record.getValue().get("createdAt");
                 if (timestamp == null){
                     continue;
                 }
@@ -65,4 +72,5 @@ public class MessageTrimService {
         String streamId = cutoffStreamId.orElse(lastStreamId.get());
         messageCacheRepository.trimMessage(roomId, streamId);
     }
+
 }

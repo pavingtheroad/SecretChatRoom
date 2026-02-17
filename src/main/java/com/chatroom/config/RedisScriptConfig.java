@@ -46,4 +46,11 @@ public class RedisScriptConfig {
         redisScript.setResultType(List.class);
         return redisScript;
     }
+    @Bean
+    public RedisScript<Long> saveMessageScript(){
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        redisScript.setLocation(new ClassPathResource("lua/save_message.lua"));
+        redisScript.setResultType(Long.class);
+        return redisScript;
+    }
 }

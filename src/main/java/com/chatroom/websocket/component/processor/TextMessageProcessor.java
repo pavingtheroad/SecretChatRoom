@@ -10,6 +10,8 @@ import com.chatroom.websocket.dto.WsMessageResponse;
 import com.chatroom.websocket.enums.MessageType;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 public class TextMessageProcessor implements MessageProcessor{
     private final MessageWriteService messageWriteService;
@@ -30,6 +32,9 @@ public class TextMessageProcessor implements MessageProcessor{
     @Override
     public void process(SessionContext ctx, WsMessageRequest request) {
         String roomId = ctx.getRoomId();
+        if (!Objects.equals(roomId, request.roomId())){
+            return;
+        }
         String userId = ctx.getUserId();
         if (roomId == null || userId == null){
             messageDispatcher.sendError(ctx.getSessionId(),
@@ -41,9 +46,14 @@ public class TextMessageProcessor implements MessageProcessor{
                     WsMessageResponse.notRoomMember(request.requestId()));
             return;
         }
-        ChatMessage msg = messageWriteService.saveMessage(userId, roomId, request.content());
+        ChatMessage msg = messageWriteService.saveMessage(userId, roomId, request.content(), request.requestId());
+        if (msg == null){
+            messageDispatcher.sendAck(ctx.getSessionId(),
+                    WsMessageResponse.messageAccepted(request.requestId()));
+            return;
+        }
         messageDispatcher.sendAck(ctx.getSessionId(),
-                WsMessageResponse.messageAccepted(request.requestId(), msg));
+                WsMessageResponse.messageAccepted(request.requestId()));
         messageDispatcher.broadcastTextToRoom(roomId,msg);
     }
 }

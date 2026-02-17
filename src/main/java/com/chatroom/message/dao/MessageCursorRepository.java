@@ -21,15 +21,16 @@ public class MessageCursorRepository {
      * @param roomId, userPKId, cursorId
      */
     public void updateCursor(String roomId, String userPKId, String cursorId){
-        String cursorKey = "chat:room:" + roomId + ":user:" + userPKId;
-        redisTemplate.opsForHash().put(cursorKey, "cursor", cursorId);
+        String cursorKey = "chat:room:" + userPKId + ":cursor";
+        redisTemplate.opsForHash().put(cursorKey, roomId, cursorId);
     }
     /**
      * 获取游标
      * @param roomId, userPKId
      */
     public Optional<String> getCursor(String roomId, String userPKId){
-        String cursorKey = "chat:room:" + roomId + ":user:" + userPKId;
-        return Optional.ofNullable((String)redisTemplate.opsForHash().get(cursorKey, "cursor"));
+        String cursorKey = "chat:room:" + userPKId + ":cursor";
+        Object value = redisTemplate.opsForHash().get(cursorKey, roomId);
+        return Optional.ofNullable(value).map(Object::toString);
     }
 }

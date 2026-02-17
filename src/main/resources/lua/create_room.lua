@@ -12,9 +12,10 @@ if redis.call("EXISTS", KEYS[1]) == 1 then    -- 房间存在则返回 0 创建�
     return 0
 else
     redis.call("HSET", KEYS[1], "roomName", ARGV[1], "ownerId", ARGV[2], "description", ARGV[3],
-            "createdAt", ARGV[4], "muted", ARGV[5], "locked", ARGV[6], "ttlMillis", ARGV[7])
-    redis.call("HSET", KEYS[1]..":state", "init", "")
-    redis.call("SADD", "chat:room:"..ARGV[8]..":members", ARGV[2])
-    redis.call("SADD", "user:"..ARGV[2]..":rooms", ARGV[8])
+            "createdAt", ARGV[4], "muted", ARGV[5], "locked", ARGV[6], "ttlMillis", ARGV[7])    -- 房间信息
+    redis.call("HSET", KEYS[1]..":state", "init", "")    -- 房间状态，目前只作为lastMessageId的存储
+    redis.call("SADD", "chat:room:"..ARGV[8]..":members", ARGV[2])    -- 房间内的成员
+    redis.call("SADD", "user:"..ARGV[2]..":rooms", ARGV[8])    -- 用户已加入的房间
+    redis.call("SADD", "chat:room", ARGV[8])    -- 房间索引集合
     return 1
 end

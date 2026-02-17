@@ -46,6 +46,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (user != null){
             sessionManager.bindUserId(session.getId(), user.getUsername());
         }
+
     }
 
     /**

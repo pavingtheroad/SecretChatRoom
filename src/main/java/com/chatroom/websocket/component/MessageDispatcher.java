@@ -24,7 +24,9 @@ public class MessageDispatcher {
         if (ctx == null) return;
 
         try {
-            ctx.getSession().sendMessage(msg);
+            synchronized (ctx.getSendLock()){
+                ctx.getSession().sendMessage(msg);
+            }
         } catch (IOException e) {
             // 网络失败是常态，不上抛
             sessionManager.closeSession(sessionId);
