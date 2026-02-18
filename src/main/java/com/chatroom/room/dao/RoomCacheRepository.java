@@ -193,4 +193,10 @@ public class RoomCacheRepository {
     public Set<String> getAllRoomIds(){
         return redisTemplate.opsForSet().members("chat:room");
     }
+    /**
+     * 变更房间拥有人
+     */
+    public void changeRoomOwner(String roomId, String newOwnerId){
+        redisTemplate.opsForHash().put(ROOM_KEY_PREFIX + roomId, "ownerId", newOwnerId);
+    }
 }

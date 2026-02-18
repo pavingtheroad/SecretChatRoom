@@ -105,9 +105,8 @@ public class RoomController {
      */
     @PostMapping("/{roomId}/members")
     public ResponseEntity<ApiResponse<Void>> addUserToRoom(@PathVariable String roomId, @RequestBody AddUserRequest request){
-        String operatorId = getUserIdFromToken();     // 留位
         String userId = request.userId();
-        roomOwnerService.addUserToRoom(roomId, userId);
+        roomOwnerService.addUserToRoom(roomId, userId);    // Service中获取当前操作用户
 
         return ResponseEntity.ok(new ApiResponse<>(
                 "SUCCESS",

@@ -7,6 +7,7 @@ import com.chatroom.room.dto.RoomInfo;
 import com.chatroom.room.exception.RoomAlreadyExistsException;
 import com.chatroom.room.exception.RoomAuthorityException;
 import com.chatroom.room.exception.RoomNotFoundException;
+import com.chatroom.room.exception.UserNotInRoomException;
 import com.chatroom.user.exception.UserNotFoundException;
 import com.chatroom.room.dao.RoomCacheRepository;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,15 @@ public class RoomServiceImpl implements RoomService{
     public void leaveRoom(String roomId, String userId, String operatorId){
         String userPKId = userIdentityResolver.getUserPKIdByUserId(userId).toString();
         String operatorPKId = userIdentityResolver.getUserPKIdByUserId(operatorId).toString();
+        // 房间人数为1时直接退出并删除房间
+        Set<String> roomMembersId = roomCacheRepository.getRoomMembersId(roomId);
+        if (roomMembersId.size() == 1){
+            roomCacheRepository.deleteRoom(roomId);
+            return;
+        }
+        if (!roomMembersId.contains(userPKId)){    // 如果用户不存在房间中
+            throw new UserNotInRoomException(roomId);
+        }
         roomAuthorization.authorizeLeaveRoom(roomId, userPKId, operatorPKId);
         roomCacheRepository.removeUserFromRoom(roomId, userPKId);
     }
