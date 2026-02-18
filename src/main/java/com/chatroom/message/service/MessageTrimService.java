@@ -20,15 +20,6 @@ public class MessageTrimService {
         this.messageCacheRepository = messageCacheRepository;
         this.roomCacheRepository = roomCacheRepository;
     }
-//    public void trimRoomMessages(String roomId) {
-//        Long ttlMillis = roomCacheRepository.getRoomInfo(roomId).ttlMillis();
-//        Long cutoffTime = Instant.now().toEpochMilli() - ttlMillis;
-//
-//        String cutoffId = cutoffTime + "-0";
-//
-//        messageCacheRepository.trimMessage(roomId, cutoffId);
-//    }
-
     public Long computeCutOffTime(String roomId){
         Long ttlMillis = roomCacheRepository.getRoomInfo(roomId).ttlMillis();
         Long now = Instant.now().toEpochMilli();
@@ -72,5 +63,4 @@ public class MessageTrimService {
         String streamId = cutoffStreamId.orElse(lastStreamId.get());
         messageCacheRepository.trimMessage(roomId, streamId);
     }
-
 }

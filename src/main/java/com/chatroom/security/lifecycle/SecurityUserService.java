@@ -3,6 +3,7 @@ package com.chatroom.security.lifecycle;
 import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.security.entity.SecurityUser;
 import com.chatroom.user.dao.UserMapper;
+import com.chatroom.user.domain.UserStatus;
 import com.chatroom.user.entity.UserEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,9 +34,12 @@ public class SecurityUserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         Long userPKId = userIdentityResolver.getUserPKIdByUserId(userId);
         UserEntity user = userMapper.selectUserByPKId(userPKId);
+        if (user.status() == UserStatus.DELETED){
+            throw new UsernameNotFoundException("user canceled");
+        }
         List<GrantedAuthority> authorities = new ArrayList<>();
         userMapper.getUserRoles(userPKId).forEach(role -> {
-            authorities.add(new SimpleGrantedAuthority(role));
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role));    // 数据库存储ADMIN，这里要改成ROLE_ADMIN
         });
         return new SecurityUser(
                 userPKId.toString(),

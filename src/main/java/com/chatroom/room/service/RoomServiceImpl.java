@@ -30,7 +30,6 @@ public class RoomServiceImpl implements RoomService{
         this.roomAuthorization = roomAuthorization;
         this.roomStateRepository = roomStateRepository;
     }
-
     public void createRoom(RoomInfo roomInfo) throws RoomAlreadyExistsException {
         roomCacheRepository.createRoom(roomInfo);
     }
@@ -55,8 +54,6 @@ public class RoomServiceImpl implements RoomService{
     public Set<String> getRoomMembersId(String roomId) {
         return roomCacheRepository.getRoomMembersId(roomId);
     }
-
-
     @Override
     public void leaveRoom(String roomId, String userId, String operatorId){
         String userPKId = userIdentityResolver.getUserPKIdByUserId(userId).toString();
@@ -64,12 +61,10 @@ public class RoomServiceImpl implements RoomService{
         roomAuthorization.authorizeLeaveRoom(roomId, userPKId, operatorPKId);
         roomCacheRepository.removeUserFromRoom(roomId, userPKId);
     }
-
     @Override
     public Boolean authorizeRoomAccess(String roomId, String userPKId) throws RoomNotFoundException{
         return roomCacheRepository.authorizeRoomAccess(roomId, userPKId);
     }
-
     @Override
     public Boolean roomExists(String roomId) {
         return roomCacheRepository.roomExists(roomId);

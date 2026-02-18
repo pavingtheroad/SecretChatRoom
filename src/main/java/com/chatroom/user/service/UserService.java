@@ -72,14 +72,14 @@ public class UserService {
         /**
          * 鉴定用户权限是否为admin
          */
-        if (!operatorUserId.equals(targetUserId)) {
-            Long operatorPKId = transformUserIdToPKId(operatorUserId);
+        Long targetPKId = transformUserIdToPKId(targetUserId);
+        Long operatorPKId = Long.parseLong(operatorUserId);
+        if (!operatorPKId.equals(targetPKId)) {
             List<String> roles = userMapper.getUserRoles(operatorPKId);
             if (!roles.contains("ADMIN")) {
                 throw new AuthorityException(operatorUserId);
             }
         }
-        Long targetPKId = transformUserIdToPKId(targetUserId);
         int updated = userMapper.updateUserStatus(targetPKId, UserStatus.DELETED);
         if (updated == 0) {
             throw new UserNotFoundException(targetUserId);
@@ -88,38 +88,25 @@ public class UserService {
     }
     // 用户信息更新(昵称、头像、绑定邮箱、userId)；但是！邮箱应在迭代版本中独立为单独业务模块，此处暂不处理
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
-    public void updateUserInfo(UserInfoUpdate updateDto) throws UserException {
+    public void updateUserInfo(UserInfoUpdate updateDto, String operatorUserId) throws UserException {
         try{
-            Long pkId = transformUserIdToPKId(updateDto.userId());
-            if (pkId == null || pkId < 0) {
+            long pkId = Long.parseLong(operatorUserId);
+            if (pkId < 0) {
                 throw new UserIdLostConnection(updateDto.userId());
             }
             int updated = userMapper.updateUserInfo(updateDto, pkId);
             if (updated == 0)
-                throw new UserNotFoundException(pkId.toString());
+                throw new UserNotFoundException(Long.toString(pkId));
         } catch (DataAccessException | UserNotFoundException e){
             throw new UserException("USER_INFO_UPDATED_FAILED", e.getMessage());
         }
     }
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
-    public void bannedUser(String targetUserId, String operatorUserId) throws AuthorityException, UserNotFoundException {
-        /**
-         * 鉴定用户权限是否为admin
-         */
-        Long operatorPKId = transformUserIdToPKId(operatorUserId);
-        Long targetPKId = transformUserIdToPKId(targetUserId);
-        List<String> roles = userMapper.getUserRoles(operatorPKId);
-        if (!roles.contains("ADMIN")) {
-            throw new AuthorityException(operatorUserId);
-        }
-        int updated = userMapper.updateUserStatus(targetPKId, UserStatus.BANNED);
-        if (updated == 0) {
-            throw new UserNotFoundException(targetUserId);
-        }
-    }
-    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public void updateUserStatus(Long targetUserPKId, UserStatus status) throws DuplicateKeyException, UserNotFoundException{
-        userMapper.updateUserStatus(targetUserPKId, status);
+        int updated = userMapper.updateUserStatus(targetUserPKId, status);
+        if (updated == 0){
+            throw new UserNotFoundException(String.valueOf(targetUserPKId));
+        }
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)

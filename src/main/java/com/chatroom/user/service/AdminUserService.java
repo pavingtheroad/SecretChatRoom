@@ -24,8 +24,6 @@ public class AdminUserService {
         this.us = userService;
         this.urs = userRoleService;
     }
-
-    private static Logger logger = LoggerFactory.getLogger(AdminUserService.class);
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public void insertRoleToUser(String userId, String roleCode) throws DuplicateKeyException, UserNotFoundException{
         /**
@@ -53,7 +51,6 @@ public class AdminUserService {
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public void banUser(String userId, String operatorUserId) throws AuthorityException, UserNotFoundException, DuplicateKeyException{
         Long userPKId = us.transformUserIdToPKId(userId);
-        Long operatorPKId = us.transformUserIdToPKId(operatorUserId);
         /**
          * 鉴定用户权限是否为admin
          */
