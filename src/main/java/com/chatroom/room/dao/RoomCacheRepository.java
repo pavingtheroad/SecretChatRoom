@@ -199,4 +199,16 @@ public class RoomCacheRepository {
     public void changeRoomOwner(String roomId, String newOwnerId){
         redisTemplate.opsForHash().put(ROOM_KEY_PREFIX + roomId, "ownerId", newOwnerId);
     }
+    /**
+     * 保存用户加密的房间密钥
+     */
+    public void putEncryptedRoomKey(String roomId, String userPKId, String encryptedRoomKey){
+        redisTemplate.opsForHash().put(ROOM_KEY_PREFIX + roomId + ":encryptedRoomKeys", userPKId, encryptedRoomKey);
+    }
+    /**
+     * 获取用户加密的房间密钥
+     */
+    public String getEncryptedRoomKey(String roomId, String userPKId){
+        return String.valueOf(redisTemplate.opsForHash().get(ROOM_KEY_PREFIX + roomId + ":encryptedRoomKeys", userPKId));
+    }
 }

@@ -54,4 +54,17 @@
     <select id="getRoleIdsByUserId">
         SELECT role_id FROM user_role WHERE user_id = #{user_id}
     </select>
+
+<!--    暂时用register代替update逻辑-->
+    <insert id="insertPublicKey">
+        INSERT INTO user_identity(user_id, public_key) VALUES (#{user_id}, #{public_key})
+    </insert>
+<!--    <insert id="updatePublicKey">-->
+<!--        INSERT INTO user_identity(user_id, public_key) VALUES (#{user_id}, #{public_key})-->
+<!--            ON DUPLICATE KEY UPDATE public_key = VALUES(public_key), key_version = key_version + 1-->
+<!--    </insert>-->
+
+    <select id="getPublicKey">
+        SELECT public_key FROM user_identity WHERE user_id = #{user_id}
+    </select>
 </mapper>

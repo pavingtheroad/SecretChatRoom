@@ -6,6 +6,7 @@ import com.chatroom.user.exception.EmailOccupiedException;
 import com.chatroom.user.exception.UserException;
 import com.chatroom.user.exception.UserNotFoundException;
 import com.chatroom.util.ApiResponse;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,17 @@ public class GlobalExceptionHandler {
                 new ApiResponse<>(
                         "BAD_REQUEST",
                         e.getMessage(),
+                        null,
+                        null
+                )
+        );
+    }
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateKey(DuplicateKeyException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ApiResponse<>(
+                        "CONFLICT",
+                        "重复添加数据" + e.getMessage(),
                         null,
                         null
                 )

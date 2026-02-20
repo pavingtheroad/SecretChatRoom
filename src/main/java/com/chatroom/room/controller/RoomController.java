@@ -1,6 +1,7 @@
 package com.chatroom.room.controller;
 
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+import com.chatroom.room.dto.PutEncryptedKeyRequest;
 import com.chatroom.util.ApiResponse;
 import com.chatroom.room.dto.RoomInfo;
 import com.chatroom.room.dto.RoomInfoUpdate;
@@ -44,13 +45,14 @@ public class RoomController {
         ));
     }
     @PostMapping("/{roomId}/members/me")
-    public ResponseEntity<ApiResponse<Void>> joinRoom(@PathVariable String roomId){
+    public ResponseEntity<ApiResponse<String>> joinRoom(@PathVariable String roomId){
         String userId = getUserIdFromToken();    // 从请求的Token中获取
         roomService.joinRoom(roomId, userId);
+        String publicKey = roomService.getEncryptedKey(roomId, userId);
         return ResponseEntity.ok(new ApiResponse<>(
                 "SUCCESS",
                 "Joined Room Successfully",
-                null,
+                publicKey,
                 null
         ));
     }
@@ -132,6 +134,18 @@ public class RoomController {
         return ResponseEntity.ok(new ApiResponse<>(
                 "SUCCESS",
                 "Delete Room Successfully",
+                null,
+                null
+        ));
+    }
+    @PutMapping("/{roomId}/encrypted-key")
+    public ResponseEntity<ApiResponse<Void>> putEncryptedKey(@PathVariable String roomId, @RequestBody PutEncryptedKeyRequest request){
+        String userId = request.userId();
+        String encryptedKey = request.encryptedKey();
+        roomOwnerService.putEncryptedKey(roomId, userId, encryptedKey);
+        return ResponseEntity.ok(new ApiResponse<>(
+                "SUCCESS",
+                "Put Encrypted Key Successfully",
                 null,
                 null
         ));

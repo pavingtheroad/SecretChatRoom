@@ -6,6 +6,7 @@ import com.chatroom.room.component.RoomAuthorization;
 import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.room.dao.RoomCacheRepository;
 import com.chatroom.room.dto.RoomInfoUpdate;
+import com.chatroom.user.exception.UserNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,5 +42,13 @@ public class RoomOwnerServiceImpl implements RoomOwnerService{
         roomAuthorization.checkRoomOwner(roomId, userPKId);
         roomCacheRepository.deleteRoom(roomId);
 
+    }
+    /**
+     * 房间邀请用户加入时就调用，用于分配房间密钥
+     */
+    @Override
+    public void putEncryptedKey(String roomId, String userId, String encryptedKey) throws UserNotFoundException {
+        String userPKId = String.valueOf(userIdentityResolver.getUserPKIdByUserId(userId));
+        roomCacheRepository.putEncryptedRoomKey(roomId, userPKId, encryptedKey);
     }
 }

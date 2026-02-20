@@ -79,4 +79,11 @@ public class RoomServiceImpl implements RoomService{
     public Boolean roomExists(String roomId) {
         return roomCacheRepository.roomExists(roomId);
     }
+    /**
+     * 用户加入房间后调用获取加密密钥
+     */
+    @Override
+    public String getEncryptedKey(String roomId, String userPKId) {
+        return roomCacheRepository.getEncryptedRoomKey(roomId, userPKId);
+    }
 }

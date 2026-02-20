@@ -8,4 +8,6 @@ public interface RoomOwnerService {
     void manageRoomInfo(String roomId, RoomInfoUpdate roomInfo);
 
     void deleteRoom(String roomId);
+
+    void putEncryptedKey(String roomId, String userPKId, String encryptedKey);
 }

@@ -1,5 +1,6 @@
 package com.chatroom.user.service;
 
+import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.user.dao.UserMapper;
 import com.chatroom.user.domain.UserStatus;
 import com.chatroom.user.dto.UserInfoDTO;
@@ -8,6 +9,8 @@ import com.chatroom.user.dto.UserProfile;
 import com.chatroom.user.dto.UserRegisterDTO;
 import com.chatroom.user.entity.UserEntity;
 import com.chatroom.user.exception.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,15 +18,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.util.List;
 
 @Service
 public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    public UserService(UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    private final UserIdentityResolver userIdentityResolver;
+
+    public UserService(UserMapper userMapper, PasswordEncoder passwordEncoder, UserIdentityResolver userIdentityResolver) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.userIdentityResolver = userIdentityResolver;
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
@@ -108,7 +116,30 @@ public class UserService {
             throw new UserNotFoundException(String.valueOf(targetUserPKId));
         }
     }
-
+    public void registerPublicKey(Long targetUserPKId, String publicKey) throws DuplicateKeyException{
+        userMapper.insertPublicKey(targetUserPKId, publicKey);
+    }
+//    暂时弃用，避免因修改导致的无法解密roomKey问题
+//    public void updateUserPublicKey(Long targetUserPKId, String publicKey) throws UserNotFoundException {
+//        int updated = userMapper.updatePublicKey(targetUserPKId, publicKey);
+//        if (updated == 0){
+//            log.warn("MySQL error while updating user public key");
+//            throw new UserNotFoundException(String.valueOf(targetUserPKId));
+//        } else if (updated > 0){
+//            log.info("User public key updated successfully.");
+//        } else {
+//            log.error("Unexpected update result.");
+//        }
+//    }
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public String getUserPublicKey(Long targetUserId) throws UserNotFoundException {
+        Long targetUserPKId = userIdentityResolver.getUserPKIdByUserId(String.valueOf(targetUserId));
+        String publicKey = userMapper.getPublicKey(targetUserPKId);
+        if (publicKey == null){
+            throw new PublicKeyNotFoundException(String.valueOf(targetUserPKId));
+        }
+        return publicKey;
+    }
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     protected Long transformUserIdToPKId(String userId) throws UserNotFoundException {
         Long pkId = userMapper.selectPKIdByUserId(userId);

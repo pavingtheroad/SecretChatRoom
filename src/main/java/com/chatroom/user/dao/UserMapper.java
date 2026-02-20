@@ -36,4 +36,8 @@ public interface UserMapper {
 
     void insertUserRoleTable(@Param("user_id") Long userPKId, @Param("role_id") Long roleId);
 
+    void insertPublicKey(@Param("user_id") Long userPKId, @Param("public_key") String publicKey);
+//    int updatePublicKey(@Param("user_id") Long userPKId, @Param("public_key") String publicKey);    // 更新用户个人公钥
+
+    String getPublicKey(@Param("user_id") Long userPKId);
 }

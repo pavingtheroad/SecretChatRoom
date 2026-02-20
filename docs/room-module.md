@@ -29,13 +29,14 @@ chat:room:
 
 ## 2.2 数据结构总览
 
-| Key                                     | 类型     | 说明        |
-| --------------------------------------- | ------ | --------- |
-| chat:room:{roomId}                      | Hash   | 房间主数据     |
-| chat:room:{roomId}:members              | Set    | 房间成员集合    |
-| user:{userId}:rooms                     | Set    | 用户加入的房间集合 |
-| chat:room:{roomId}:msg                  | Stream | 消息流       |
-| chat:room:{roomId}:state                | Hash   | 房间状态      |
+| Key                              | 类型     | 说明        |
+|----------------------------------|--------|-----------|
+| chat:room:{roomId}               | Hash   | 房间主数据     |
+| chat:room:{roomId}:members       | Set    | 房间成员集合    |
+| user:{userId}:rooms              | Set    | 用户加入的房间集合 |
+| chat:room:{roomId}:msg           | Stream | 消息流       |
+| chat:room:{roomId}:state         | Hash   | 房间状态      |
+ | chat:room:{roomId}:encryptedKeys | Hash   | 用户加密房间密钥  |
 
 ---
 
@@ -85,7 +86,7 @@ user:{userId}:rooms            -> SADD roomId
 ### 返回值：
 
 | 值 | 含义    |
-| - | ----- |
+|---|-------|
 | 1 | 创建成功  |
 | 0 | 房间已存在 |
 
@@ -107,7 +108,7 @@ user:{userId}:rooms            -> SADD roomId
 ### 返回值：
 
 | 值  | 含义    |
-| -- | ----- |
+|----|-------|
 | 1  | 成功    |
 | 0  | 房间不存在 |
 | -1 | 已加入   |
@@ -128,7 +129,7 @@ user:{userId}:rooms            -> SADD roomId
 ### 返回值：
 
 | 值  | 含义       |
-| -- | -------- |
+|----|----------|
 | 1  | 成功       |
 | 0  | 房间不存在    |
 | -1 | 用户与房间无关系 |
@@ -150,17 +151,117 @@ user:{userId}:rooms            -> SADD roomId
 ### 返回值：
 
 | 值 | 含义    |
-| - | ----- |
+|---|-------|
 | 1 | 删除成功  |
 | 0 | 房间不存在 |
 
 ---
 
-# 四、服务接口定义
+# 四、控制器接口
+
+## 4.1 REST API端点
+
+### 创建房间
+```
+POST /room
+```
+**请求体：** RoomInfo对象
+**响应：** ApiResponse<Void> - 房间创建成功
+
+### 加入房间
+```
+POST /room/{roomId}/members/me
+```
+**路径参数：** roomId - 房间ID
+**响应：** ApiResponse<Void> - 成功加入房间
+
+### 获取房间信息
+```
+GET /room/{roomId}/info
+```
+**路径参数：** roomId - 房间ID
+**响应：** ApiResponse<RoomInfo> - 房间详细信息
+
+### 获取房间成员列表
+```
+GET /room/{roomId}/members
+```
+**路径参数：** roomId - 房间ID
+**响应：** ApiResponse<Set<String>> - 成员用户ID集合
+
+### 获取用户加入的房间列表
+```
+GET /room/joined
+```
+**响应：** ApiResponse<Set<String>> - 房间ID集合
+
+### 退出房间
+```
+DELETE /room/leave/{roomId}
+```
+**路径参数：** roomId - 房间ID
+**响应：** ApiResponse<Void> - 成功退出房间
+
+### 房主添加成员
+```
+POST /room/{roomId}/members
+```
+**路径参数：** roomId - 房间ID
+**请求体：** AddUserRequest { userId }
+**响应：** ApiResponse<Void> - 成功添加用户
+
+### 更新房间信息
+```
+PUT /room/{roomId}
+```
+**路径参数：** roomId - 房间ID
+**请求体：** RoomInfoUpdate对象
+**响应：** ApiResponse<Void> - 房间信息更新成功
+
+### 删除房间
+```
+DELETE /room/{roomId}
+```
+**路径参数：** roomId - 房间ID
+**响应：** ApiResponse<Void> - 房间删除成功
+
+## 4.2 请求/响应模型
+
+### AddUserRequest
+```java
+public record AddUserRequest(
+    String userId
+){}
+```
+
+### 统一响应格式
+所有接口均返回 `ApiResponse<T>` 格式：
+```JSON
+{
+    "code": "SUCCESS",
+    "message": "操作描述",
+    "data": "具体数据",
+    "timestamp": "时间戳"
+}
+```
+
+## 4.3 认证机制
+- 所有接口通过JWT Token进行身份认证
+- 用户ID从SecurityContext中自动提取
+- 房主操作会进行额外的权限验证
+
+## 4.4 权限控制
+- **普通用户**：可创建房间、加入/退出房间、查看房间信息
+- **房主**：拥有房间的完全控制权，包括添加成员、修改信息、删除房间
+- **锁定房间**：仅房主可添加成员
 
 ---
 
-## 4.1 RoomService
+# 五、服务接口定义
+
+---
+
+## 5.1 RoomService
 
 ### 创建房间
 
@@ -226,7 +327,7 @@ Boolean authorizeRoomAccess(String roomId, String userId)
 
 ---
 
-## 4.2 RoomOwnerService
+## 5.2 RoomOwnerService
 
 ### 添加成员
 
@@ -254,11 +355,11 @@ void deleteRoom(String roomId)
 
 ---
 
-# 五、权限模型
+# 六、权限模型
 
 ---
 
-## 5.1 房主权限
+## 6.1 房主权限
 
 * 更新房间信息
 * 删除房间
@@ -266,14 +367,14 @@ void deleteRoom(String roomId)
 
 ---
 
-## 5.2 普通成员权限
+## 6.2 普通成员权限
 
 * 加入未锁定房间
 * 自主退出
 
 ---
 
-## 5.3 权限检查组件
+## 6.3 权限检查组件
 
 ```
 RoomAuthorization
@@ -288,14 +389,16 @@ authorizeLeaveRoom()
 
 ---
 
-# 六、异常模型
+# 七、异常模型
+
+## 7.1 异常类型说明
 
 | 异常                         | 场景    |
-| -------------------------- | ----- |
+|----------------------------|-------|
 | RoomNotFoundException      | 房间不存在 |
 | RoomAlreadyExistsException | 创建重复  |
 | RoomAuthorityException     | 权限不足  |
 | UserAlreadyExistsException | 已加入   |
 | UserNotFoundException      | 用户不存在 |
-| UserNotInRoomException（可选） | 无关系   |
+| UserNotInRoomException     | 无关系   |
 

@@ -2,12 +2,13 @@ spring:
   application:
     name: initialization
   datasource:
-    url: jdbc:mysql://localhost:3306/chat_room
+    url: jdbc:mysql://localhost:3306/secret_chatroom
     username: root
     password: 123456
 # default ttl of messages
 message-config:
   default-ttl: 3600
-
+jwt:
+  secret: mySecretKeyForJWTSigningWhichShouldBeLongAndSecure123456
 session:
   expire-time: 3600000    # 1 hour

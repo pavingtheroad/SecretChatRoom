@@ -22,4 +22,6 @@ public interface RoomService {
     Boolean authorizeRoomAccess(String roomId, String userPKId) throws RoomNotFoundException;
 
     Boolean roomExists(String roomId);    // 仅用于读路径的快速校验
+
+    String getEncryptedKey(String roomId, String userPKId);
 }
