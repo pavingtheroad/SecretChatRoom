@@ -28,17 +28,20 @@ public class MessageQueryService {
      */
     public List<MessageDTO> initMessageQuery(String roomId, String userPKId, int limit){
         Optional<String> cursorOpt = messageCursorRepository.getCursor(roomId, userPKId);   // 寻找上次查看的游标
-        String startId = cursorOpt.orElseGet(() ->
-                messageCacheRepository.getLastMessageId(roomId).orElse(null)
+        String startId = cursorOpt.orElseGet(() -> {    // 没有cursor则试图获取最新消息
+                    Optional<String> lastId = messageCacheRepository.getLastMessageId(roomId);
+                    lastId.ifPresent(id -> messageCursorRepository.updateCursor(roomId, userPKId, id));    // cursor同步到最新消息
+                    return lastId.orElse(null);
+                }
         );
         if (startId == null){
-            return Collections.emptyList();
+            return Collections.emptyList();    // 最新消息也没有就返回空列表
         }
         Range<String> range = Range.leftUnbounded(Range.Bound.inclusive(startId));      // 从cursor向前查询
-        limit = Math.max(limit, 1);
+        limit = Math.max(limit, 1);    // 确保limit有效
         Limit lim = Limit.limit().count(limit);
         List<MapRecord<String, Object, Object>> records = messageCacheRepository.reverseRangeMessages(roomId, range, lim);
-        // cursor失效后的兜底
+        // cursor失效后的兜底(进入条件选择的状态：通过cursor或最新Id查不到消息
         if (records.isEmpty()) {
             Optional<String> lastId = messageCacheRepository.getLastMessageId(roomId);
             if (lastId.isEmpty()) {
