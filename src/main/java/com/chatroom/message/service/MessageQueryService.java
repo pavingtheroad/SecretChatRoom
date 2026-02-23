@@ -47,9 +47,11 @@ public class MessageQueryService {
             if (lastId.isEmpty()) {
                 return Collections.emptyList();
             }
-
             range = Range.leftUnbounded(Range.Bound.inclusive(lastId.get()));
             records = messageCacheRepository.reverseRangeMessages(roomId, range, lim);
+            if (records.isEmpty()) {
+                return Collections.emptyList();
+            }
             Collections.reverse(records);
             MapRecord<String, Object, Object> last = records.get(records.size() - 1);
             messageCursorRepository.updateCursor(roomId, userPKId, last.getId().getValue());    // cursor同步到最新消息
