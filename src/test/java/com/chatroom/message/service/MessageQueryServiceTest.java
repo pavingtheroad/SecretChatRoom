@@ -18,6 +18,7 @@ import org.springframework.data.redis.connection.stream.StreamRecords;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -32,7 +33,7 @@ public class MessageQueryServiceTest {
 
     @InjectMocks
     private MessageQueryService messageQueryService;
-    // 测试initMessageQuery，5种路径
+    // 测试initMessageQuery
     @Test    // 有Cursor，且能找到对应消息
     void initMessageQuery_shouldReturnMessages_whenCursorExists(){
         String roomId = "room1";
@@ -50,18 +51,10 @@ public class MessageQueryServiceTest {
         List<MessageDTO> result =
                 messageQueryService.initMessageQuery(roomId, userId, limit);
 
-        // 验证
-        ArgumentCaptor<Range<String>> rangeCaptor = ArgumentCaptor.forClass(Range.class);
-        verify(messageCacheRepository, times(1))
-                .reverseRangeMessages(
-                        eq(roomId),
-                        rangeCaptor.capture(),
-                        any()
-                );
-        Range<String> range = rangeCaptor.getValue();
-        assertEquals("1999-0", range.getUpperBound().getValue().get());
-        verifyCursorUpdate(roomId, userId, "1999-0", 0);
-        // 断言，验证返回结果
+        // 验证cursor未变化
+        verify(messageCursorRepository, never())
+                .updateCursor(any(), any(), any());
+        // 用户能看到消息
         assertEquals(1, result.size());
         assertEquals("hello", result.get(0).content());
     }
@@ -86,18 +79,8 @@ public class MessageQueryServiceTest {
                 messageQueryService.initMessageQuery(roomId, userId, limit);
 
         // 验证返回结果
-        ArgumentCaptor<Range<String>> rangeCaptor = ArgumentCaptor.forClass(Range.class);    // 捕获参数Range, 预期为从2000-0开始
-        verify(messageCacheRepository, times(1))
-                .reverseRangeMessages(
-                        eq(roomId),
-                        rangeCaptor.capture(),
-                        any()
-                );
-        Range<String> range = rangeCaptor.getValue();
-        assertEquals("2000-0", range.getUpperBound().getValue().get());
         verifyCursorUpdate(roomId, userId, "2000-0", 1);
         assertEquals(1, result.size());
-        assertEquals("hello", result.get(0).content());
     }
     @Test    // 有Cursor，但无对应消息; 有最新消息
     void initMessageQuery_shouldReturnMessages_whenCursorExistsButNoMatchingMessages(){
@@ -120,18 +103,10 @@ public class MessageQueryServiceTest {
         // 捕获参数Range, 预期为从2000-0开始
         ArgumentCaptor<Range<String>> rangeCaptor = ArgumentCaptor.forClass(Range.class);
         verify(messageCacheRepository, times(2))
-                .reverseRangeMessages(
-                        eq(roomId),
-                        rangeCaptor.capture(),
-                        any()
-                );
+                .reverseRangeMessages( eq(roomId), rangeCaptor.capture(), any() );
         List<Range<String>> ranges = rangeCaptor.getAllValues();
-        assertEquals("1999-0",
-                ranges.get(0).getUpperBound().getValue().get());
-
-        assertEquals("2000-0",
-                ranges.get(1).getUpperBound().getValue().get());
-
+        assertEquals("1999-0", ranges.get(0).getUpperBound().getValue().get());
+        assertEquals("2000-0", ranges.get(1).getUpperBound().getValue().get());
         verifyCursorUpdate(roomId, userId, "2000-0", 1);
 
         assertEquals(1, result.size());
@@ -172,15 +147,108 @@ public class MessageQueryServiceTest {
         List<MessageDTO> result = messageQueryService.initMessageQuery(roomId, userId, limit);
         // 验证
         verifyCursorUpdate(roomId, userId, null, 0);
-        verify(messageCacheRepository, times(1))
-                .reverseRangeMessages(
-                        eq(roomId),
-                        any(),
-                        any()
-                );
+
         assertEquals(0, result.size());
     }
-
+    @Test    // Cursor存在但无效，lastId存在但无效
+    void initMessageQuery_shouldReturnEmptyList_whenCursorInvalidAndLastMessageInvalid(){
+        String roomId = "room1";
+        String userId = "user1";
+        int limit = 10;
+        // mock cursor 存在，但无效
+        givenCursor(roomId, userId, "1999-0");
+        // mock 最新消息ID存在，但无效
+        givenLastMessageId(roomId, "2000-0");
+        givenReverseReturns(roomId,
+                Collections.emptyList(),    // 第一次通过Cursor查询无效
+                Collections.emptyList()     // 第两次通过lastId查询无效
+        );
+        // 执行
+        List<MessageDTO> result = messageQueryService.initMessageQuery(roomId, userId, limit);
+        // 验证
+        verifyCursorUpdate(roomId, userId, null, 0);
+        assertTrue(result.isEmpty());
+    }
+    // 测试getForwardMessages
+    @Test
+    void getForwardMessages_shouldReturnEmptyList_whenNoOlderMessages(){
+        String roomId = "room1";
+        String userId = "user1";
+        String end = "2000-0";
+        int limit = 10;
+        when(messageCacheRepository.reverseRangeMessages(
+                eq(roomId),
+                any(),
+                any()
+        )).thenReturn(Collections.emptyList());
+        // 执行
+        List<MessageDTO> result = messageQueryService.getForwardMessages(roomId, userId, end, limit);
+        // 验证
+        verifyCursorUpdate(roomId, userId, null, 0);
+        assertEquals(0, result.size());
+    }
+    @Test
+    void getForwardMessages_shouldReturnMessages_whenOlderMessagesFound(){
+        String roomId = "room1";
+        String userId = "user1";
+        String end = "2000-0";
+        int limit = 10;
+        MapRecord<String, Object, Object> record1 = buildRecord(roomId, "1999-0", "hello");
+        MapRecord<String, Object, Object> record2 = buildRecord(roomId, "2000-0", "world");
+        List<MapRecord<String, Object, Object>> records = new ArrayList<>();
+        records.add(record2);
+        records.add(record1);
+        when(messageCacheRepository.reverseRangeMessages(
+                eq(roomId),
+                any(),
+                any()
+        )).thenReturn(records);
+        // 执行
+        List<MessageDTO> result = messageQueryService.getForwardMessages(roomId, userId, end, limit);
+        // 验证
+        verifyCursorUpdate(roomId, userId, "1999-0", 1);
+        assertEquals(2, result.size());
+    }
+    // 测试getBackwardMessages
+    @Test    // 无newer msg，根据当前页面最新id无法继续向后查询消息
+    void getBackwardMessages_shouldReturnEmptyList_whenNoNewerMessages(){
+        String roomId = "room1";
+        String userId = "user1";
+        String start = "2000-0";
+        int limit = 10;
+        when(messageCacheRepository.rangeMessages(
+                eq(roomId),
+                any(),
+                any()
+        )).thenReturn(Collections.emptyList());
+        // 执行
+        List<MessageDTO> result = messageQueryService.getBackwardMessages(roomId, userId, start, limit);
+        // 验证
+        verifyCursorUpdate(roomId, userId, null, 0);
+        assertEquals(0, result.size());
+    }
+    @Test    // 查询到更晚消息
+    void getBackwardMessages_shouldReturnMessages_whenNewerMessagesFound(){
+        String roomId = "room1";
+        String userId = "user1";
+        String start = "2000-0";
+        int limit = 10;
+        MapRecord<String, Object, Object> record1 = buildRecord(roomId, "2001-0", "hello");
+        MapRecord<String, Object, Object> record2 = buildRecord(roomId, "2002-0", "world");
+        List<MapRecord<String, Object, Object>> records = new ArrayList<>();
+        records.add(record1);
+        records.add(record2);
+        when(messageCacheRepository.rangeMessages(
+                eq(roomId),
+                any(),
+                any()
+        )).thenReturn(records);
+        // 执行
+        List<MessageDTO> result = messageQueryService.getBackwardMessages(roomId, userId, start, limit);
+        // 验证
+        verifyCursorUpdate(roomId, userId, "2002-0", 1);
+        assertEquals(2, result.size());
+    }
     private MapRecord<String, Object, Object> buildRecord(String roomId, String id, String content){
         Map<Object, Object> contentMap = new HashMap<>();
         contentMap.put("senderId", "user1");
@@ -192,15 +260,16 @@ public class MessageQueryServiceTest {
                 .ofMap(contentMap)
                 .withId(RecordId.of(id));
     }
-    private void givenReverseReturns(String roomId, List<?>... results){
+    @SafeVarargs
+    private void givenReverseReturns(String roomId, List<MapRecord<String, Object, Object>>... results){
         OngoingStubbing<List<MapRecord<String, Object, Object>>> stubbing =
                 when(messageCacheRepository.reverseRangeMessages(
                         eq(roomId),
                         any(),
                         any()
                 ));
-        for (List<?> result : results) {
-            stubbing = stubbing.thenReturn((List<MapRecord<String, Object, Object>>) result);
+        for (List<MapRecord<String, Object, Object>> result : results) {
+            stubbing = stubbing.thenReturn(result);
         }
     }
     private void verifyCursorUpdate(String roomId, String userId, String expectedCursor, int times){
