@@ -80,18 +80,50 @@
 
 ### Questions Wait For Answer
 - Servlet 在 Spring 中的应用
+---
 - Mybatis 中 Mapper 与 xml 的映射
   - Mapper 方法名一定要对应 Mybatis 的 id 吗？为什么
+---
 - 注入的目的是什么？
+---
 - @Service为什么要标在实现类上
+---
 - 小型项目架构设计理念（各个层的职责“怎么高内聚低耦合”）\ 抽象依赖与业务耦合的区别？
+---
 - SecurityChain的http过滤链中的一些常用配置
   - CSRF（跨站请求伪造防护）：默认开启，为每个客户端分配随机token(类比通行证)
     - 客户端如何携带 token：
       1.放在cookie中：在前端发送请求时从 Cookie 中取出 token 放到请求头/请求体中交给服务器认证。
       *万一 Cookie 中的 token 被挟持怎么办？* 现代 CSRF 防护中还会检查请求头的Origin字段确认域名
+---
 - Spring Security 的完整流程
   1. 用户登录信息 -> 服务器验证凭证合法性 -> （验证成功）生成JWT返回客户端 -> 客户端保存JWT并在后续需要权限验证的请求中携带token
+---
 - 理解Servlet
   - 生命周期
   - 线程模型
+
+---
+
+- Spring Boot 测试
+  1. Mock测试思想: 用假的依赖对象替代真实依赖
+    * 抽象重复逻辑
+      - `OngoingStubbing<T>` 表示一个正在进行的 Stubbing（桩）操作，允许你连续设置同一个方法调用的不同返回值。
+        - 典型用法
+            1. 设置连续返回值
+          ```java
+          private void givenReverseReturns(String roomId, List<?>... results){
+              OngoingStubbing<List<MapRecord<String, Object, Object>>> stubbing =
+                  when(messageCacheRepository.reverseRangeMessages(
+                    eq(roomId),
+                    any(),
+                    any()
+                  ));
+              for (List<?> result : results) {
+                    stubbing = stubbing.thenReturn((List<MapRecord<String, Object, Object>>) result);
+              }
+          }
+          ```
+    * 断言与验证的使用场景
+      1. `assert` 一般用在 输入 → 输出 不协调多个系统的纯计算型业务逻辑，100% 行为驱动测试
+      2. `verify` 调用多个依赖的协调层，适度verify以验证行为的同时测试关键协作是否发生
