@@ -1,10 +1,7 @@
 package com.chatroom.exceptionHandler;
 
 import com.chatroom.security.exception.JwtGenerateException;
-import com.chatroom.user.exception.AuthorityException;
-import com.chatroom.user.exception.EmailOccupiedException;
-import com.chatroom.user.exception.UserException;
-import com.chatroom.user.exception.UserNotFoundException;
+import com.chatroom.user.exception.*;
 import com.chatroom.util.ApiResponse;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -22,7 +19,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleEmailOccupied(EmailOccupiedException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
-
+    @ExceptionHandler(UserCanceledException.class)
+    public ResponseEntity<String> handleUserCanceled(UserCanceledException e) {
+        return ResponseEntity.status(HttpStatus.GONE).body(e.getMessage());
+    }
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFound(UserNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
