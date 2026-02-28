@@ -10,6 +10,10 @@ spring:
       host: 127.0.0.1
       port: 6379
       timeout: 6000
+# Mybatis
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.secret.chatroom.**.entity
 # default ttl of messages
 message-config:
   default-ttl: 3600
@@ -17,3 +21,6 @@ jwt:
   secret: mySecretKeyForJWTSigningWhichShouldBeLongAndSecure123456
 session:
   expire-time: 3600000    # 1 hour
+logging:
+  level:
+    org.springframework.security: DEBUG

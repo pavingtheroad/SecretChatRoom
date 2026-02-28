@@ -98,6 +98,19 @@
 ---
 - Spring Security 的完整流程
   1. 用户登录信息 -> 服务器验证凭证合法性 -> （验证成功）生成JWT返回客户端 -> 客户端保存JWT并在后续需要权限验证的请求中携带token
+  2. 认证流程(用户名&密码认证)
+     1. `UsernamePasswordAuthenticationFilter`拦截请求，这个过滤器会检查当前请求是否是 POST 类型的登录请求，如果是就执行attemptAuthentication()方法
+        
+         从请求中提取username和password -> 创建UsernamePasswordAuthenticationToken令牌（未认证） -> 设置请求详情 -> 将令牌交给AuthenticationManager.authenticate()
+
+     2. `ProviderManager`接收令牌（这是AuthenticationManager的默认实现），这个类调度所有注册的AuthenticationProvider寻找能处理令牌的provider
+     
+     3. 对于用户名密码认证`DaoAuthenticationProvider` 会接手，其`authenticate()` 进行认证
+      
+         从令牌获取用户名 -> 调用`retrieveUser()`加载用户信息(调用UserDetailsService的loadUserByUsername()方法) -> 
+         通过用户信息的密码与令牌获取的密码进行匹配(会调用PasswordEncoder) -> 创建已认证的令牌
+     
+     4. 令牌层层返回到 `UsernamePasswordAuthenticationFilter`
 ---
 - 理解Servlet
   - 生命周期
@@ -127,3 +140,67 @@
     * 断言与验证的使用场景
       1. `assert` 一般用在 输入 → 输出 不协调多个系统的纯计算型业务逻辑，100% 行为驱动测试
       2. `verify` 调用多个依赖的协调层，适度verify以验证行为的同时测试关键协作是否发生
+
+---
+- 来自 `@RestController` 和 `@Controller` 的致命一击
+  - 问题描述：后端api编写为`/auth/**`，在请求中变成`/auth/auth/**`
+  
+  ```java
+    @Controller
+    @RequestMapping("/auth")
+    public class AuthController {
+      private final AuthService authService;
+      private final UserService US;
+      public AuthController(AuthService authService, UserService US) {
+        this.authService = authService;
+        this.US = US;
+      }
+      @PostMapping("/login")
+      public ApiResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest){
+        LoginResponse loginResponse = new LoginResponse(authService.login(loginRequest.userId(), loginRequest.password()));
+        return new ApiResponse<>(
+          "SUCCESS",
+          "Login Successfully",
+          loginResponse,
+          null
+          );
+      }
+    }
+  ```
+  - 问题根源：Spring的视图解析机制（Spring MVC规则）
+
+    | 注解              | 行为                    |
+    | --------------- | --------------------- |
+    | @Controller     | 认为返回值是视图名             |
+    | @RestController | 返回值直接写入 response body |
+
+    1. 在`@Controller`下，Spring会将返回值当作视图名称处理，我在返回`ApiResponse<T>`时，Spring会尝试把ApiResponse对象当作模型属性`Model Attribute`
+    ，这时因为没有显式返回viewName Spring 使用`RequestToViewNameTranslator` 将请求路径变为 `auth/login`然后`viewName = auth/login`
+    接下来开始执行`ViewResolver`，它会尝试forward`/auth/login`。此时进入`DispatcherServlet`再加上Controller类上有`@RequestMapping("/auth")`
+    路径就变成`/auth/auth/login`
+    
+    ```text
+      POST /auth/login
+      ↓
+      @Controller 方法执行
+      ↓
+      返回 ApiResponse 对象
+      ↓
+      当作 ModelAttribute
+      ↓
+      viewName = "auth/login"
+      ↓
+      InternalResourceViewResolver
+      ↓
+      forward("/auth/login")
+      ↓
+      重新进入 DispatcherServlet
+      ↓
+      匹配到 @RequestMapping("/auth")
+      ↓
+      路径变成 /auth/auth/login
+      ↓
+      Security 拦截
+      ↓
+      401
+    ```

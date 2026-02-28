@@ -1,5 +1,6 @@
 package com.chatroom.user.dto;
 
+import com.chatroom.user.domain.UserStatus;
 import com.chatroom.user.entity.UserEntity;
 
 public record UserRegisterDTO(
@@ -8,15 +9,15 @@ public record UserRegisterDTO(
         String email,
         String avatarUrl
 ) {
-   public static UserEntity toEntity(UserRegisterDTO userRegisterDTO, String encodedPassword){
+   public static UserEntity toEntity(UserRegisterDTO userRegisterDTO, String userId, String encodedPassword){
        return new UserEntity(
            null,
-           null,
+           userId,
            userRegisterDTO.userName(),
            userRegisterDTO.avatarUrl(),
            encodedPassword,
            userRegisterDTO.email(),
-           null
+           UserStatus.ACTIVE
        );
    }
 

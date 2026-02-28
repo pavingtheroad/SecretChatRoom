@@ -1,5 +1,6 @@
 package com.chatroom.user.service;
 
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.chatroom.component.UserIdentityResolver;
 import com.chatroom.user.dao.UserMapper;
 import com.chatroom.user.domain.UserStatus;
@@ -37,8 +38,9 @@ public class UserService {
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public void registerUser(UserRegisterDTO userRegisterDTO) throws EmailOccupiedException {
         // 未来添加邮箱验证逻辑，向注册邮箱发送验证码，用户键入验证码认证邮箱正确
+        String defaultUserId = NanoIdUtils.randomNanoId();
         String encodedPassword = passwordEncoder.encode(userRegisterDTO.password());
-        UserEntity userEntity = UserRegisterDTO.toEntity(userRegisterDTO, encodedPassword);
+        UserEntity userEntity = UserRegisterDTO.toEntity(userRegisterDTO, defaultUserId, encodedPassword);
         try{
             userMapper.insertUser(userEntity);
         } catch (DuplicateKeyException e){
