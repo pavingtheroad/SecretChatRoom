@@ -108,9 +108,11 @@
      3. 对于用户名密码认证`DaoAuthenticationProvider` 会接手，其`authenticate()` 进行认证
       
          从令牌获取用户名 -> 调用`retrieveUser()`加载用户信息(调用UserDetailsService的loadUserByUsername()方法) -> 
-         通过用户信息的密码与令牌获取的密码进行匹配(会调用PasswordEncoder) -> 创建已认证的令牌
+         通过用户信息的密码与令牌获取的密码进行匹配(会调用PasswordEncoder) -> 创建**已认证**的令牌
      
      4. 令牌层层返回到 `UsernamePasswordAuthenticationFilter`
+     
+  3. ![img.png](img.png)
 ---
 - 理解Servlet
   - 生命周期
@@ -119,6 +121,7 @@
 ---
 
 - Spring Boot 测试
+
   1. Mock测试思想: 用假的依赖对象替代真实依赖
     * 抽象重复逻辑
       - `OngoingStubbing<T>` 表示一个正在进行的 Stubbing（桩）操作，允许你连续设置同一个方法调用的不同返回值。
@@ -137,9 +140,21 @@
               }
           }
           ```
+          
     * 断言与验证的使用场景
       1. `assert` 一般用在 输入 → 输出 不协调多个系统的纯计算型业务逻辑，100% 行为驱动测试
       2. `verify` 调用多个依赖的协调层，适度verify以验证行为的同时测试关键协作是否发生
+
+    * mock SpringSecurity 验证时`@WithMockUser` 和 `mockMvc.perform(with(user()))`的区别
+      1. `@WithMockUser`：直接创建已认证的`UsernamePasswordAuthenticationToken`，跳过`UsernamePasswordAuthenticationFilter`
+      后续过滤器步骤
+      2. `with(user())`：先创建UserDetails再根据UserDetails创建已认证的`UsernamePasswordAuthenticationToken`
+      3. *p.s.* 使用`@WithMockUser`创建的 Authentication 的 principal 是 String(username), `with(user())`创建的principal 是
+      UserDetais
+      
+      |   |`@WithMockUser` | `with(user())` |
+      |---|----------------|----------------|
+      |作用域| 类/方法级别  |  单个请求级别     |
 
 ---
 - 来自 `@RestController` 和 `@Controller` 的致命一击

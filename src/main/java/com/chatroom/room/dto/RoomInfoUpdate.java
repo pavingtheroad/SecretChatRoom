@@ -7,4 +7,7 @@ public record RoomInfoUpdate(
         Boolean locked,     // 房间是否公开
         Long ttlMillis      // 房间信息有效期
 ) {
+    public static RoomInfoUpdate empty(){
+        return new RoomInfoUpdate(null, null, null, null, null);
+    }
 }

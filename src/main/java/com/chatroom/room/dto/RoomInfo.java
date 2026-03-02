@@ -10,5 +10,7 @@ public record RoomInfo(
         Boolean locked,
         Long ttlMillis
 ) {
-
+    public static RoomInfo empty(){
+        return new RoomInfo("", "", "", "", 0L, false, false, 30000L);
+    }
 }

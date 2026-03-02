@@ -41,7 +41,6 @@ public class RoomOwnerServiceImpl implements RoomOwnerService{
         String userPKId = IdentityResolver.currentUserPKId().toString();
         roomAuthorization.checkRoomOwner(roomId, userPKId);
         roomCacheRepository.deleteRoom(roomId);
-
     }
     /**
      * 房间邀请用户加入时就调用，用于分配房间密钥
