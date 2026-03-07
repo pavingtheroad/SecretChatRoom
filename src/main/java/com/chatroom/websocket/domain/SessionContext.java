@@ -7,7 +7,7 @@ public class SessionContext {
     private final WebSocketSession session;
     private volatile String userId;    // token认证后绑定
     private volatile String roomId;    // join 后绑定
-    private volatile long activeTime;    // 最新活跃时间
+    private volatile long activeTime = System.currentTimeMillis();    // 最新活跃时间
     private final Object sendLock = new Object();    // 发送锁
     public SessionContext(String sessionId, WebSocketSession session) {
         this.sessionId = sessionId;

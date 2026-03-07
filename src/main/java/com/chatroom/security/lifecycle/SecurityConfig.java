@@ -1,9 +1,12 @@
 package com.chatroom.security.lifecycle;
 
 import com.chatroom.security.component.JwtProvider;
+import com.chatroom.util.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,8 +23,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig{
     private final JwtFilter jwtFilter;
-    public SecurityConfig(JwtProvider jwtProvider) {
+    private final ObjectMapper objectMapper;
+    public SecurityConfig(JwtProvider jwtProvider, ObjectMapper objectMapper) {
         this.jwtFilter = new JwtFilter(jwtProvider);
+        this.objectMapper = objectMapper;
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,8 +40,18 @@ public class SecurityConfig{
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, e) ->
-                                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED))
+                        .authenticationEntryPoint((req, res, e) -> {
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            ApiResponse<Void> response = new ApiResponse<>(
+                                    "UNAUTHORIZED",
+                                    "用户无权限访问" + e.getMessage(),
+                                    null,
+                                    null
+                            );
+                            res.getWriter().write(objectMapper.writeValueAsString(response));
+                        })
+
                         .accessDeniedHandler((req, res, e) ->
                                 res.setStatus(HttpServletResponse.SC_FORBIDDEN))
                 )

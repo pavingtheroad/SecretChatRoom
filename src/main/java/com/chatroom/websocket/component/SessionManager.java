@@ -4,6 +4,7 @@ import com.chatroom.websocket.domain.SessionContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -134,6 +135,7 @@ public class SessionManager {
      * 关闭websocketSession
      */
     public void closeSession(String sessionId){
+        System.out.println("CLOSE_SESSION " + sessionId);
         SessionContext sessionContext = sessionContextMap.get(sessionId);
         if (sessionContext == null) {
             return; // 幂等
@@ -141,15 +143,6 @@ public class SessionManager {
         leaveRoom(sessionId);
         unbindUserId(sessionId);
         sessionContextMap.remove(sessionId);    // 删除sessionId的会话
-        try {
-            if (sessionContext.getSession().isOpen()) {
-                sessionContext.getSession().close();
-            }
-
-        } catch (Exception ignored){
-
-        }
-
     }
     /**
      * 获取SessionContext
@@ -179,9 +172,13 @@ public class SessionManager {
         return new HashSet<>(sessionContextMap.values());
     }
 
-    public void kickUser(String userId) {
+    public void kickUser(String userId) throws IOException {
         for (String sessionId : getUserSessionsId(userId)) {
-            closeSession(sessionId);
+            SessionContext ctx = sessionContextMap.get(sessionId);
+            if (ctx == null){
+                continue;
+            }
+            ctx.getSession().close();
         }
     }
 }

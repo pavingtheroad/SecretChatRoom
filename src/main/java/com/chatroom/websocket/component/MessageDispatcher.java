@@ -21,8 +21,9 @@ public class MessageDispatcher {
     }
     public void deliverToSession(String sessionId, TextMessage msg) {
         SessionContext ctx = sessionManager.getSessionContext(sessionId);
-        if (ctx == null) return;
-
+        if (ctx == null) {
+            return;
+        }
         try {
             synchronized (ctx.getSendLock()){
                 ctx.getSession().sendMessage(msg);
@@ -38,9 +39,11 @@ public class MessageDispatcher {
      * @param msg
      */
     private void broadcastToRoom(String roomId, TextMessage msg){
+
         Set<String> sessionsId = sessionManager.getRoomSessionsId(roomId);
         if (sessionsId == null) return;
         for (String sessionId : sessionsId){
+            System.out.println("BROADCAST_TO_SESSION" + sessionId);
             deliverToSession(sessionId, msg);
         }
     }

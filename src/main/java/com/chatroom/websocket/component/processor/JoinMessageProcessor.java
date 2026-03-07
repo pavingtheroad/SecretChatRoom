@@ -32,6 +32,7 @@ public class JoinMessageProcessor implements MessageProcessor{
      */
     @Override
     public void process(SessionContext ctx, WsMessageRequest request) {
+        System.out.println("JOIN_PROCESS " + ctx.getSessionId());
         String userId = ctx.getUserId();
         if (ctx.getRoomId() != null){    // 已Join
             messageDispatcher.sendError(ctx.getSessionId(),

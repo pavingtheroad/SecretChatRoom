@@ -1,5 +1,6 @@
-package com.chatroom.message.controller;
+package com.chatroom.message.slicetesting;
 
+import com.chatroom.message.controller.MessageQueryController;
 import com.chatroom.message.dto.MessageDTO;
 import com.chatroom.message.service.MessageQueryService;
 import com.chatroom.room.service.RoomService;

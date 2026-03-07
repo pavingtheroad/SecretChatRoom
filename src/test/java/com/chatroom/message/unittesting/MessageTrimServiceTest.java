@@ -1,6 +1,7 @@
-package com.chatroom.message.service;
+package com.chatroom.message.unittesting;
 
 import com.chatroom.message.dao.MessageCacheRepository;
+import com.chatroom.message.service.MessageTrimService;
 import com.chatroom.room.dao.RoomCacheRepository;
 import com.chatroom.room.dto.RoomInfo;
 import org.junit.jupiter.api.BeforeEach;

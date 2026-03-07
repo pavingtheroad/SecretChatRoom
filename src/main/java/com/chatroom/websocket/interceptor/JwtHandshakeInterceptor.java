@@ -28,6 +28,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                                    ServerHttpResponse response,
                                    WebSocketHandler wsHandler,
                                    Map<String, Object> attributes) throws Exception {
+
         if (!(request instanceof ServletServerHttpRequest servletRequest)){
             return false;
         }

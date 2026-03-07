@@ -1,8 +1,9 @@
-package com.chatroom.message.service;
+package com.chatroom.message.unittesting;
 
 import com.chatroom.message.dao.MessageCacheRepository;
 import com.chatroom.message.dao.MessageCursorRepository;
 import com.chatroom.message.dto.MessageDTO;
+import com.chatroom.message.service.MessageQueryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

@@ -5,7 +5,9 @@ import com.chatroom.websocket.domain.SessionContext;
 import com.chatroom.websocket.dto.WsMessageRequest;
 import com.chatroom.websocket.dto.WsMessageResponse;
 import com.chatroom.websocket.enums.MessageType;
+import org.springframework.stereotype.Component;
 
+@Component
 public class HeartbeatMessageProcessor implements MessageProcessor{
     private final MessageDispatcher messageDispatcher;
     public HeartbeatMessageProcessor(MessageDispatcher messageDispatcher) {

@@ -41,12 +41,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session){
+        System.out.println("REGISTER " + session.getId());
         sessionManager.register(session);
         SecurityUser user = getUser(session);
         if (user != null){
             sessionManager.bindUserId(session.getId(), user.getUsername());
         }
-
     }
 
     /**
@@ -56,6 +56,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+        System.out.println("HANDLE " + session.getId());
+        System.out.println("CTX " + sessionManager.getSessionContext(session.getId()));
         WsMessageRequest request;
         try {
             request = objectMapper.readValue(message.getPayload(), WsMessageRequest.class);
@@ -80,7 +82,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
         SessionContext ctx = sessionManager.getSessionContext(session.getId());
         if (ctx == null) {
-            // 理论上极少，但这是 WS 的真实世界
+            // 理论上极少
             return;
         }
         ctx.updateActiveTime();
@@ -92,6 +94,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     }
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status){
+        System.out.println("CLOSE SESSION " + session.getId());
         sessionManager.closeSession(session.getId());
     }
     /**
