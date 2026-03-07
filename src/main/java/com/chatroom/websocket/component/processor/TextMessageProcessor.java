@@ -10,6 +10,7 @@ import com.chatroom.websocket.dto.WsMessageResponse;
 import com.chatroom.websocket.enums.MessageType;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 @Component
@@ -31,8 +32,9 @@ public class TextMessageProcessor implements MessageProcessor{
 
     @Override
     public void process(SessionContext ctx, WsMessageRequest request) {
+        System.out.println("TEXT_PROCESS " + ctx.getSessionId());
         String roomId = ctx.getRoomId();
-        if (!Objects.equals(roomId, request.roomId())){
+        if (!roomId.equals(request.roomId())){
             return;
         }
         String userId = ctx.getUserId();

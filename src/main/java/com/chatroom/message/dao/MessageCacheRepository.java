@@ -30,9 +30,9 @@ public class MessageCacheRepository {
     private static final String ROOM_KEY_PREFIX = "chat:room:";
     private static final Logger log = LoggerFactory.getLogger(MessageCacheRepository.class);
     private final StringRedisTemplate redisTemplate;
-    private final RedisScript<Long> saveMessageScript;
+    private final RedisScript<String> saveMessageScript;
     public MessageCacheRepository(StringRedisTemplate redisTemplate,
-                                  RedisScript<Long> saveMessageScript) {
+                                  RedisScript<String> saveMessageScript) {
         this.redisTemplate = redisTemplate;
         this.saveMessageScript = saveMessageScript;
     }
@@ -41,18 +41,18 @@ public class MessageCacheRepository {
      * 保存消息 Redis自动生成id
      * 无条件信任来自服务层的参数正确性
      */
-    public Long saveMessage(ChatMessage chatMessage, String requestId){
+    public String saveMessage(ChatMessage chatMessage, String requestId){
         String roomId = chatMessage.roomId();
         String streamKey = streamKey(roomId);
         String requestKey = requestKey(roomId, requestId);
         String stateKey = stateKey(roomId);
         List<String> keys = List.of(streamKey, requestKey, stateKey);
-        Long result = redisTemplate.execute(saveMessageScript, keys,
+        String result = redisTemplate.execute(saveMessageScript, keys,
                 requestId,
                 chatMessage.senderId(),
-                chatMessage.type(),
+                chatMessage.type().name(),
                 chatMessage.content(),
-                chatMessage.createdAt());
+                String.valueOf(chatMessage.createdAt()));
         if (result == null){
             log.warn("Message already processed for request: {}", requestId);
             return null;

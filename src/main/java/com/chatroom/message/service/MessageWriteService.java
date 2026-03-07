@@ -24,12 +24,12 @@ public class MessageWriteService {
                 content,
                 now
         );
-        Long messageId = messageCacheRepository.saveMessage(message, requestId);
+        String messageId = messageCacheRepository.saveMessage(message, requestId);
         if (messageId == null){
             return null;
         }
         return new ChatMessage(
-                messageId.toString(),
+                messageId,
                 roomId,
                 senderId,
                 MessageType.TEXT,

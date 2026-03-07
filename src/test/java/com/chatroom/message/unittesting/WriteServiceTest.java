@@ -1,7 +1,8 @@
-package com.chatroom.message.service;
+package com.chatroom.message.unittesting;
 
 import com.chatroom.message.dao.MessageCacheRepository;
 import com.chatroom.message.entity.ChatMessage;
+import com.chatroom.message.service.MessageWriteService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,7 +40,7 @@ public class WriteServiceTest {
     void saveMessage_shouldReturnMessage_whenRepositoryReturnsId() {
         // given
         when(messageCacheRepository.saveMessage(any(), eq("req-1")))
-                .thenReturn(100L);
+                .thenReturn("123-0");
 
         // when
         ChatMessage result = messageWriteService
@@ -47,7 +48,7 @@ public class WriteServiceTest {
 
         // then
         assertNotNull(result);
-        assertEquals("100", result.streamId());
+        assertEquals("123-0", result.streamId());
         assertEquals("room1", result.roomId());
         assertEquals("user1", result.senderId());
         assertEquals("hello", result.content());

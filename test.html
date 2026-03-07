@@ -13,7 +13,7 @@
     ws.onopen = (event) => {
         console.log("✅ WebSocket opened", event);
         // 可以立刻
-        ws.send(JSON.stringify({userId: "462", msg: "Hello from browser"}));
+        ws.send(JSON.stringify({userPKId: "462", msg: "Hello from browser"}));
     };
 
     // 3. 接收消息
