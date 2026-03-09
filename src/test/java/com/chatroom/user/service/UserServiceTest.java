@@ -100,7 +100,7 @@ public class UserServiceTest {
         UserEntity userEntity = new UserEntity(1001L, userId, "userName", null, null, null, UserStatus.ACTIVE);
         when(userMapper.selectUserByUserId(userId)).thenReturn(userEntity);
 
-        UserProfile result = userService.getUserProfile(userId);
+        UserProfile result = userService.getUserProfileByUserId(userId);
 
         assertEquals(userId, result.userId());
         assertEquals("userName", result.userName());
@@ -112,7 +112,7 @@ public class UserServiceTest {
 
         UserNotFoundException exception = assertThrows(
                 UserNotFoundException.class,
-                () -> userService.getUserProfile(userId)
+                () -> userService.getUserProfileByUserId(userId)
         );
         assertEquals("USER_NOT_FOUND", exception.getErrorCode());
     }

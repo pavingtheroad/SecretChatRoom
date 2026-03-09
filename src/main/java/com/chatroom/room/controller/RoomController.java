@@ -117,6 +117,7 @@ public class RoomController {
                 null
         ));
     }
+    // 更新房间信息
     @PutMapping("/{roomId}")
     public ResponseEntity<ApiResponse<Void>> manageRoomInfo(@PathVariable String roomId, @RequestBody RoomInfoUpdate roomInfo){
         String operatorId = getUserIdFromToken();     // 留位
@@ -150,7 +151,7 @@ public class RoomController {
                 null
         ));
     }
-    private String getUserIdFromToken(){
+    private String getUserIdFromToken(){    // 获取到的为UserPKId
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = securityContext.getAuthentication();
         return authentication.getName();

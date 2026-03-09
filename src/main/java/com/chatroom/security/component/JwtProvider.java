@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 @Component
 public class JwtProvider {
     private final SecretKey secretKey;
-//    private final long ttlMillis = 24 * 60 * 60 * 1000L;
-    private final long ttlMillis = 5 * 1000L;
+    private final long ttlMillis = 24 * 60 * 60 * 1000L;
+//    private final long ttlMillis = 5 * 1000L;
 
     public JwtProvider(@Value("${jwt.secret}") String secret) {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);

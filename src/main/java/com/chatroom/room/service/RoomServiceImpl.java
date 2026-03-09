@@ -49,7 +49,7 @@ public class RoomServiceImpl implements RoomService{
         }
     }
     public Set<String> joinedRoomsId(String userId) {     // 获取用户加入的roomId集合
-        return roomCacheRepository.joinedRooms(userIdentityResolver.getUserPKIdByUserId(userId).toString());
+        return roomCacheRepository.joinedRooms(userId);
     }
     @Override
     public Set<String> getRoomMembersId(String roomId) {

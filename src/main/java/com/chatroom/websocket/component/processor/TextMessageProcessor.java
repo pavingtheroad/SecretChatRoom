@@ -34,13 +34,13 @@ public class TextMessageProcessor implements MessageProcessor{
     public void process(SessionContext ctx, WsMessageRequest request) {
         System.out.println("TEXT_PROCESS " + ctx.getSessionId());
         String roomId = ctx.getRoomId();
-        if (!roomId.equals(request.roomId())){
-            return;
-        }
         String userId = ctx.getUserId();
         if (roomId == null || userId == null){
             messageDispatcher.sendError(ctx.getSessionId(),
                     WsMessageResponse.invalidContext(request.requestId()));
+            return;
+        }
+        if (!roomId.equals(request.roomId())){
             return;
         }
         if (!roomService.authorizeRoomAccess(roomId, userId)){

@@ -24,7 +24,7 @@ public interface UserMapper {
 
     int updateUserStatus(@Param("id") Long id, @Param("status") UserStatus status);
 
-    int updateUserInfo(UserInfoUpdate userInfo, @Param("id") Long id);
+    int updateUserInfo(@Param("userInfo") UserInfoUpdate userInfo, @Param("id") Long id);
 
     List<String> getUserRoles(@Param("id") Long id);
 

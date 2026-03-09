@@ -45,7 +45,7 @@ public class SecurityConfig{
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             ApiResponse<Void> response = new ApiResponse<>(
                                     "UNAUTHORIZED",
-                                    "用户无权限访问" + e.getMessage(),
+                                    "reject by security" + e.getMessage(),
                                     null,
                                     null
                             );

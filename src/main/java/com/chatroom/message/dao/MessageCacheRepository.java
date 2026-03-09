@@ -82,6 +82,7 @@ public class MessageCacheRepository {
      * @param roomId, cutoffId
      */
     public void trimMessage(String roomId, String cutoffId){
+        log.info("trim room {} with cutoffId {}", roomId, cutoffId);
         String streamKey = streamKey(roomId);
         Long deleted = redisTemplate.execute((RedisConnection connection) ->
                 (Long)connection.execute(

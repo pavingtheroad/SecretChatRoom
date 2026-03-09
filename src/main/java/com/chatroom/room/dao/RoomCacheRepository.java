@@ -47,10 +47,10 @@ public class RoomCacheRepository {
                 roomInfo.roomName(),
                 roomInfo.ownerId(),
                 roomInfo.description() == null ? "" : roomInfo.description(),
-                roomInfo.createdAt(),
-                roomInfo.muted(),
-                roomInfo.locked(),
-                roomInfo.ttlMillis(),
+                String.valueOf(roomInfo.createdAt()),
+                String.valueOf(roomInfo.muted()),
+                String.valueOf(roomInfo.locked()),
+                String.valueOf(roomInfo.ttlMillis()),
                 roomId
         );
         if (result == 0L) throw new RoomAlreadyExistsException(roomId);
@@ -158,9 +158,9 @@ public class RoomCacheRepository {
         Map<String, Object> update = new HashMap<>();
         if (roomInfo.roomName() != null) update.put("roomName", roomInfo.roomName());
         if (roomInfo.description() != null) update.put("description", roomInfo.description());
-        if (roomInfo.muted() != null) update.put("muted", roomInfo.muted());
-        if (roomInfo.locked() != null) update.put("locked", roomInfo.locked());
-        if (roomInfo.ttlMillis() != null) update.put("ttlMillis", roomInfo.ttlMillis());
+        if (roomInfo.muted() != null) update.put("muted", roomInfo.muted().toString());
+        if (roomInfo.locked() != null) update.put("locked", roomInfo.locked().toString());
+        if (roomInfo.ttlMillis() != null) update.put("ttlMillis", roomInfo.ttlMillis().toString());
 
         if (!update.isEmpty()){
             redisTemplate.opsForHash().putAll(key, update);

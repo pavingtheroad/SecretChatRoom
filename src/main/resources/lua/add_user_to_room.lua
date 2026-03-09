@@ -14,10 +14,10 @@ end
 --    return -1
 --end
 
-local locked = redis.call('HGET', KEYS[1], "locked")
-if tostring(locked) == "true" then    -- 若房间被锁住则返回-2
-    return -2
-end
+--local locked = redis.call('HGET', KEYS[1], "locked")
+--if tostring(locked) == "true" then    -- 若房间被锁住则返回-2
+--    return -2
+--end
 
 redis.call('SADD', KEYS[2], ARGV[1])
 redis.call('SADD', KEYS[3], ARGV[2])

@@ -33,7 +33,14 @@
     </update>
 
     <update id="updateUserInfo">
-        UPDATE user_info SET user_name = #{userName}, avatar_url = #{avatarUrl}, email = #{email}, user_id = #{userId} WHERE id = #{id}
+        UPDATE user_info
+        <set>
+            <if test="userInfo.userId != null">user_id = #{userInfo.userId},</if>
+            <if test="userInfo.userName != null">user_name = #{userInfo.userName},</if>
+            <if test="userInfo.avatarUrl != null">avatar_url = #{userInfo.avatarUrl},</if>
+            <if test="userInfo.email != null">email = #{userInfo.email},</if>
+        </set>
+        WHERE id = #{id}
     </update>
 
     <select id="getUserRoles">

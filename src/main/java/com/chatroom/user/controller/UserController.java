@@ -45,9 +45,16 @@ public class UserController {
 
     }
     @GetMapping("/me")
-    public ResponseEntity<String> getUserProfile(Authentication authentication){
-        UserProfile userProfile = US.getUserProfile(authentication.getName());
-        return ResponseEntity.ok(userProfile.toString());
+    public ResponseEntity<ApiResponse<UserProfile>> getUserProfile(Authentication authentication){
+        UserProfile userProfile = US.getUserProfileByPKId(authentication.getName());
+        return ResponseEntity.ok().body(
+                new ApiResponse<>(
+                        "SUCCESS",
+                        "Getting User Profile Successfully",
+                        userProfile,
+                        null
+                        )
+        );
     }
     @PostMapping("/public-key")
     public ResponseEntity<ApiResponse<Void>> registerUserPublicKey(@RequestBody PublicKeyRequest publicKey,

@@ -56,67 +56,67 @@ public class MessageTrimServiceTest {
                 .thenReturn(roomInfo);
         long before = Instant.now().toEpochMilli();
 
-        Long cutoff = messageTrimService.computeCutOffTime(roomId);
+        Optional<Long> cutoff = messageTrimService.computeCutOffTime(roomId);
 
         long after = Instant.now().toEpochMilli();
-
-        assertTrue(cutoff <= after - 10000L);
-        assertTrue(cutoff >= before - 10000L);
+        long cutoffTime = cutoff.orElse(after);
+        assertTrue(cutoffTime <= after - 10000L);
+        assertTrue(cutoffTime >= before - 10000L);
     }
-    // 测试findCutOffStreamId
-    @Test    // 无消息
-    void findCutOffStreamId_noMessages(){
-        String roomId = "room1";
-        Long cutoffTime = 10L;
-        givenRangeMessagesReturn(roomId, Collections.emptyList());
-        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
-        assertTrue(result.isEmpty());
-    }
-    @Test    // 第一次循环找到
-    void findCutoffStreamId_findOutInFirstLoop(){
-        String roomId = "room1";
-        Long cutoffTime = 10L;
-        MapRecord<String, Object, Object> message = buildMessageRecord(roomId, "1-0", 20L);
-        List<MapRecord<String, Object, Object>> messages = List.of(message);
-        givenRangeMessagesReturn(roomId, messages);
-        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
-        assertTrue(result.isPresent());
-        assertEquals("1-0", result.get());
-    }
-    @Test    // 第二批找到
-    void findCutoffStreamId_findOutInSecondLoop(){
-        String roomId = "room1";
-        Long cutoffTime = 10L;
-        MapRecord<String, Object, Object> message = buildMessageRecord(roomId, "1-0", 9L);
-        MapRecord<String, Object, Object> message2 = buildMessageRecord(roomId, "1-1", 15L);
-        List<MapRecord<String, Object, Object>> messages = new ArrayList<>();
-        List<MapRecord<String, Object, Object>> messages2 = new ArrayList<>();
-        messages.add(message);
-        messages2.add(message2);
-        messages.addAll(Collections.nCopies(99, buildMessageRecord(null, null, 8L)));
-        messages2.addAll(Collections.nCopies(99, buildMessageRecord(null, null, 8L)));
-        givenRangeMessagesReturn(roomId, messages, messages2);
-        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
-        assertTrue(result.isPresent());
-        assertEquals("1-1", result.get());
-    }
-    @Test    // 多次循环无结果
-    void findCutoffStreamId_noResult(){
-        String roomId = "room1";
-        Long cutoffTime = 10L;
-        MapRecord<String, Object, Object> message = buildMessageRecord(roomId, "1-0", 9L);
-        MapRecord<String, Object, Object> message2 = buildMessageRecord(roomId, "1-1", 8L);
-        List<MapRecord<String, Object, Object>> messages = new ArrayList<>();
-        List<MapRecord<String, Object, Object>> messages2 = new ArrayList<>();
-        messages.add(message);
-        messages2.add(message2);
-        messages.addAll(Collections.nCopies(99, buildMessageRecord(null, null, 8L)));
-        messages2.addAll(Collections.nCopies(9, buildMessageRecord(null, null, 8L)));
-        givenRangeMessagesReturn(roomId, messages, messages2);
-        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
-        assertTrue(result.isEmpty());
-
-    }
+//    // 测试findCutOffStreamId
+//    @Test    // 无消息
+//    void findCutOffStreamId_noMessages(){
+//        String roomId = "room1";
+//        Long cutoffTime = 10L;
+//        givenRangeMessagesReturn(roomId, Collections.emptyList());
+//        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
+//        assertTrue(result.isEmpty());
+//    }
+//    @Test    // 第一次循环找到
+//    void findCutoffStreamId_findOutInFirstLoop(){
+//        String roomId = "room1";
+//        Long cutoffTime = 10L;
+//        MapRecord<String, Object, Object> message = buildMessageRecord(roomId, "1-0", 20L);
+//        List<MapRecord<String, Object, Object>> messages = List.of(message);
+//        givenRangeMessagesReturn(roomId, messages);
+//        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
+//        assertTrue(result.isPresent());
+//        assertEquals("1-0", result.get());
+//    }
+//    @Test    // 第二批找到
+//    void findCutoffStreamId_findOutInSecondLoop(){
+//        String roomId = "room1";
+//        Long cutoffTime = 10L;
+//        MapRecord<String, Object, Object> message = buildMessageRecord(roomId, "1-0", 9L);
+//        MapRecord<String, Object, Object> message2 = buildMessageRecord(roomId, "1-1", 15L);
+//        List<MapRecord<String, Object, Object>> messages = new ArrayList<>();
+//        List<MapRecord<String, Object, Object>> messages2 = new ArrayList<>();
+//        messages.add(message);
+//        messages2.add(message2);
+//        messages.addAll(Collections.nCopies(99, buildMessageRecord(null, null, 8L)));
+//        messages2.addAll(Collections.nCopies(99, buildMessageRecord(null, null, 8L)));
+//        givenRangeMessagesReturn(roomId, messages, messages2);
+//        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
+//        assertTrue(result.isPresent());
+//        assertEquals("1-1", result.get());
+//    }
+//    @Test    // 多次循环无结果
+//    void findCutoffStreamId_noResult(){
+//        String roomId = "room1";
+//        Long cutoffTime = 10L;
+//        MapRecord<String, Object, Object> message = buildMessageRecord(roomId, "1-0", 9L);
+//        MapRecord<String, Object, Object> message2 = buildMessageRecord(roomId, "1-1", 8L);
+//        List<MapRecord<String, Object, Object>> messages = new ArrayList<>();
+//        List<MapRecord<String, Object, Object>> messages2 = new ArrayList<>();
+//        messages.add(message);
+//        messages2.add(message2);
+//        messages.addAll(Collections.nCopies(99, buildMessageRecord(null, null, 8L)));
+//        messages2.addAll(Collections.nCopies(9, buildMessageRecord(null, null, 8L)));
+//        givenRangeMessagesReturn(roomId, messages, messages2);
+//        Optional<String> result = messageTrimService.findCutOffStreamId(roomId, cutoffTime);
+//        assertTrue(result.isEmpty());
+//
+//    }
     // 测试trimRoomMessages
     @Test    // 无消息
     void trimRoomMessages_noMessages(){

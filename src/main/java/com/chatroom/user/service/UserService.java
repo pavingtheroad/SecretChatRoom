@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException;
 import java.util.List;
 
 @Service
@@ -35,18 +34,24 @@ public class UserService {
         this.userIdentityResolver = userIdentityResolver;
     }
 
+    /**
+     * 注册用户时返回自动生成的用户Id
+     * @param userRegisterDTO
+     * @return 用户Id
+     * @throws EmailOccupiedException
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
-    public void registerUser(UserRegisterDTO userRegisterDTO) throws EmailOccupiedException {
+    public String registerUser(UserRegisterDTO userRegisterDTO) throws EmailOccupiedException {
         // 未来添加邮箱验证逻辑，向注册邮箱发送验证码，用户键入验证码认证邮箱正确
         String defaultUserId = NanoIdUtils.randomNanoId();
         String encodedPassword = passwordEncoder.encode(userRegisterDTO.password());
         UserEntity userEntity = UserRegisterDTO.toEntity(userRegisterDTO, defaultUserId, encodedPassword);
         try{
             userMapper.insertUser(userEntity);
+            return defaultUserId;
         } catch (DuplicateKeyException e){
             throw new EmailOccupiedException(userRegisterDTO.email());
         }
-
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
@@ -61,14 +66,21 @@ public class UserService {
         return userEntity.toUserInfoDTO();
     }
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
-    public UserProfile getUserProfile(String userId) throws UserNotFoundException{
+    public UserProfile getUserProfileByUserId(String userId) throws UserNotFoundException{
         UserEntity userEntity = userMapper.selectUserByUserId(userId);
         if (userEntity == null){
             throw new UserNotFoundException(userId);
         }
         return UserProfile.fromEntity(userEntity);
     }
-
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
+    public UserProfile getUserProfileByPKId(String userPKId){
+        UserEntity user = userMapper.selectUserByPKId(Long.parseLong(userPKId));
+        if (user == null){
+            throw new UserNotFoundException(userPKId);
+        }
+        return UserProfile.fromEntity(user);
+    }
     @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public List<UserInfoDTO> searchUserByName(String userName) {
         List<UserEntity> userEntities = userMapper.selectUserByName(userName);

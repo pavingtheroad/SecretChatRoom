@@ -2,6 +2,7 @@ package com.chatroom.message.service;
 
 import com.chatroom.message.dao.MessageCacheRepository;
 import com.chatroom.room.dao.RoomCacheRepository;
+import com.chatroom.room.dto.RoomInfo;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -20,47 +21,67 @@ public class MessageTrimService {
         this.messageCacheRepository = messageCacheRepository;
         this.roomCacheRepository = roomCacheRepository;
     }
-    public Long computeCutOffTime(String roomId){
-        Long ttlMillis = roomCacheRepository.getRoomInfo(roomId).ttlMillis();
-        Long now = Instant.now().toEpochMilli();
-        return now - ttlMillis;
-    }
-    public Optional<String> findCutOffStreamId(String roomId,Long cutoffTime){
-        String startId = "-";
-        int batchSize = 100;    // 每次查询的批量大小
-        boolean done = false;
-        while (!done) {
-            List<MapRecord<String, Object, Object>> records = messageCacheRepository.rangeMessages(roomId,
-                    Range.from(Range.Bound.inclusive(startId)).to(Range.Bound.unbounded()),
-                    Limit.limit().count(batchSize));
-            if (records.isEmpty())
-                return Optional.empty();
-            for (MapRecord<String, Object, Object> record : records) {
-                Object timestamp = record.getValue().get("createdAt");
-                if (timestamp == null){
-                    continue;
-                }
-                long messageTime = Long.parseLong(timestamp.toString());
-                if (messageTime >= cutoffTime){     // 找到第一个大于cutoffTime的消息
-                    return Optional.of(record.getId().getValue());
-                }
-            }
-            MapRecord<String, Object, Object> lastRecord = records.get(records.size() - 1);
-            startId = "(" + lastRecord.getId().getValue();
-            if (records.size() < batchSize) {
-                done = true;
-            }
+//    public Long computeCutOffTime(String roomId){
+//        Long ttlMillis = roomCacheRepository.getRoomInfo(roomId).ttlMillis();
+//        Long now = Instant.now().toEpochMilli();
+//        return now - ttlMillis;
+//    }
+    public Optional<Long> computeCutOffTime(String roomId){
+        RoomInfo info = roomCacheRepository.getRoomInfo(roomId);
+        if (info == null || info.ttlMillis() == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
-    }
 
+        long now = Instant.now().toEpochMilli();
+        return Optional.of(now - info.ttlMillis());
+    }
+//    public Optional<String> findCutOffStreamId(String roomId,Long cutoffTime){
+//        String startId = "-";
+//        int batchSize = 100;    // 每次查询的批量大小
+//        boolean done = false;
+//        while (!done) {
+//            List<MapRecord<String, Object, Object>> records = messageCacheRepository.rangeMessages(roomId,
+//                    Range.from(Range.Bound.inclusive(startId)).to(Range.Bound.unbounded()),
+//                    Limit.limit().count(batchSize));
+//            if (records.isEmpty())
+//                return Optional.empty();
+//            for (MapRecord<String, Object, Object> record : records) {
+//                Object timestamp = record.getValue().get("createdAt");
+//                if (timestamp == null){
+//                    continue;
+//                }
+//                long messageTime = Long.parseLong(timestamp.toString());
+//                if (messageTime >= cutoffTime){     // 找到第一个大于cutoffTime的消息
+//                    return Optional.of(record.getId().getValue());
+//                }
+//            }
+//            MapRecord<String, Object, Object> lastRecord = records.get(records.size() - 1);
+//            startId = "(" + lastRecord.getId().getValue();
+//            if (records.size() < batchSize) {
+//                done = true;
+//            }
+//        }
+//        return Optional.empty();
+//    }
     public void trimRoomMessages(String roomId){
-        Long cutoffTime = computeCutOffTime(roomId);
+        Optional<Long> cutoffTimeOpt = computeCutOffTime(roomId);
+        if (cutoffTimeOpt.isEmpty())
+            return;
+
         Optional<String> lastStreamId = messageCacheRepository.getLastMessageId(roomId);
         if (lastStreamId.isEmpty())
             return;
-        Optional<String> cutoffStreamId = findCutOffStreamId(roomId, cutoffTime);
-        String streamId = cutoffStreamId.orElse(lastStreamId.get());
+
+        String streamId = cutoffTimeOpt.get() + "-0";
         messageCacheRepository.trimMessage(roomId, streamId);
     }
+//    public void trimRoomMessages(String roomId){
+//        Long cutoffTime = computeCutOffTime(roomId);
+//        Optional<String> lastStreamId = messageCacheRepository.getLastMessageId(roomId);
+//        if (lastStreamId.isEmpty())
+//            return;
+////        Optional<String> cutoffStreamId = findCutOffStreamId(roomId, cutoffTime);
+////        String streamId = cutoffStreamId.orElse(lastStreamId.get());
+//        messageCacheRepository.trimMessage(roomId, streamId);
+//    }
 }

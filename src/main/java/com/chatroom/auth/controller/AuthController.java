@@ -33,9 +33,16 @@ public class AuthController {
     }
     // 注册账户
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserRegisterDTO userRegisterDTO){
-        US.registerUser(userRegisterDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<ApiResponse<String>> registerUser(@RequestBody UserRegisterDTO userRegisterDTO){
+        String userId = US.registerUser(userRegisterDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new ApiResponse<>(
+                        "SUCCESS",
+                        "Register Successfully",
+                        userId,
+                        null
+                )
+        );
 
     }
 }
